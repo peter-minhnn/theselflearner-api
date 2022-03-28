@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Register new account</title>
+    <style>
+        html,
+        body {
+            font-size: 16px;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 15px;
+        }
+
+        .form {
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <section>
+        <div class="form">
+            <h4>You are logged in with {{provider}}. The Self-learner was created your new account.</h4><br />
+            <p>New password: <span style="font-style: italic; font-weight: bold; letter-spacing: .25px;">{{password}}</span></p>
+            <p>Click <a href="{{homeUrl}}" >here</a> to redirect to home page</p><br />
+            <p><strong>Best and Regards,</strong></p>
+            <span>The Self-learner</span>
+        </div>
+        {{!-- <img src='./images/cover_tsl.jpg' alt="" width="750px" height="auto" style="object-fit: cover;" /> --}}
+    </section>
+</body>
+
+</html>
