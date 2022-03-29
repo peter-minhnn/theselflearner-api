@@ -5,13 +5,18 @@ const Menus = mongoose.model(
     name: String,
     parentIdx: String,
     path: String,
+    order: String,
     status: String,
     createdDate: String,
     createdUser: String,
     updatedDate: String,
-    updatedUser: String
-  }, 
-  { strict: true }),
+    updatedUser: String,
+    roles: [{
+      type: mongoose.Schema.Types.String,
+      ref: "Role"
+    }]
+  },
+    { strict: true }),
   'menus'
 );
 

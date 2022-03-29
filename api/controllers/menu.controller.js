@@ -1,5 +1,6 @@
 const db = require("../models");
 const Menu = db.menu;
+const Role = db.role;
 
 exports.getAll = (req, res) => {
     Menu.find().exec((err, menus) => {
@@ -24,7 +25,9 @@ exports.create = (req, res) => {
         createdDate: new Date().toISOString(),
         creadtedUser: req.body.createdUser,
         updatedDate: "",
-        updatedUser: ""
+        updatedUser: "",
+        roles: req.body.roles,
+        order: req.body.order
     });
     menu.save((err, user) => {
         if (err) {
@@ -46,7 +49,9 @@ exports.update = (req, res) => {
                 path: o.path,
                 status: o.status,
                 updatedDate: new Date().toISOString(),
-                updatedUser: o.updatedUser
+                updatedUser: o.updatedUser,
+                roles: o.roles,
+                order: o.order
             }
             Menu.updateOne({ '_id': o._id }, updateData).exec((err, menu) => {
                 if (err) {
@@ -67,7 +72,8 @@ exports.update = (req, res) => {
             path: req.body.path,
             status: req.body.status,
             updatedDate: new Date().toISOString(),
-            updatedUser: req.body.updatedUser
+            updatedUser: req.body.updatedUser,
+            order: req.body.order
         }
         Menu.updateOne({ '_id': req.body._id }, updateData).exec((err, menu) => {
             if (err) {
@@ -91,6 +97,21 @@ exports.delete = (req, res) => {
         res.status(200).send({
             code: 201,
             message: 'Menu was deleted successfully!'
+        });
+    });
+}
+
+exports.getRoles = (req, res) => {
+    Role.find().exec((err, roles) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+        roles = roles.filter(x => x.name != 'user');
+        res.status(200).send({
+            result: roles,
+            code: 200,
+            message: 'Get all users successfully!'
         });
     });
 }
