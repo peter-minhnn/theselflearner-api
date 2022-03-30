@@ -2,8 +2,8 @@ const fs = require('fs');
 const db = require("../models");
 const AWS = require('aws-sdk');
 const s3 = new AWS.S3({
-    accessKeyId: process.env.AWS_ACCESSKEYID,
-    secretAccessKey: process.env.AWS_SECRETKEY
+    accessKeyId: 'AKIAXRSNYYVPHKQODT6J',
+    secretAccessKey: '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'
 });
 var formidable = require('formidable');
 const Course = db.course;
@@ -41,12 +41,8 @@ exports.upload = async (req, res) => {
                     res.status(500).send({ message: err });
                     return;
                 }
-                res.status(200).send({ message: "Course was updated successfully!", code: 201, data: course });
+                res.status(200).send({ message: "Course was updated successfully!", code: 201, data: response });
             });
         });
     });
-
-    
-
-    return response;
 }
