@@ -33,7 +33,7 @@ module.exports = function (app) {
         ],
         controller.findOne
     );// Get user by email
-    app.post("/api/user/delete",
+    app.delete("/api/user/delete",
         [
             authJwt.verifyToken,
             authJwt.isAdmin

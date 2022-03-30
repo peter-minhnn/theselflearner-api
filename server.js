@@ -78,6 +78,7 @@ require("./routes/auth.routes")(app);
 require("./routes/user.routes")(app);
 require("./routes/course.routes")(app);
 require("./routes/menu.routes")(app);
+require("./routes/s3.routes")(app);
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from

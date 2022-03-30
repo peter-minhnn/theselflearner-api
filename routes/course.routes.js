@@ -36,4 +36,7 @@ module.exports = function (app) {
         ],
         controller.deleteCourseEvaluate
     )
+    app.get("/api/course/getCourses",
+        controller.getCourses
+    ); //Get all courses
 };

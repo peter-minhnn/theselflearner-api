@@ -55,7 +55,7 @@ exports.createCourse = async (req, res) => {
         creadtedUser: req.body.createdUser,
         updatedDate: "",
         updatedUser: "",
-        avatar: JSON.stringify(req.body.avatar)
+        avatar: ''
     });
 
     course.save((err, course) => {
@@ -63,30 +63,11 @@ exports.createCourse = async (req, res) => {
             res.status(500).send({ message: err });
             return;
         }
-
-        const evaluate = new Evaluate({
-            courseId: id,
-            score: 0,
-            comment: '',
-            studentEmail: '',
-            createdDate: new Date().toISOString(),
-            creadtedUser: req.body.createdUser,
-            updatedDate: "",
-            updatedUser: ""
-        });
-
-        evaluate.save((err, evalResult) => {
-            if (err) {
-                res.status(500).send({ message: err });
-                return;
-            }
-        });
-
         res.send({ message: "Course was created successfully!", code: 201 });
     });
 }
 
-exports.updateCourse = (req, res) => {
+exports.updateCourse = async (req, res) => {
     const data = {
         title: req.body.title,
         courseType: req.body.courseType,
@@ -96,7 +77,8 @@ exports.updateCourse = (req, res) => {
         objectives: req.body.objectives,
         courseOutline: req.body.courseOutline,
         updatedDate: new Date().toISOString(),
-        updatedUser: req.body.updatedUser
+        updatedUser: req.body.updatedUser,
+        avatar: ''
     };
 
     Course.updateOne({ "_id": req.body._id }, data).exec((err, course) => {
@@ -122,7 +104,7 @@ exports.deleteCourse = (req, res) => {
 }
 
 exports.deleteCourseEvaluate = (req, res) => {
-    Evaluate.deleteOne({ "_id": req.body._id }).exec((err, result) => {
+    Evaluate.deleteOne({ "_id": req.body.id }).exec((err, result) => {
         if (err) {
             res.status(500).send({ message: err });
             return;
@@ -131,5 +113,25 @@ exports.deleteCourseEvaluate = (req, res) => {
             code: 201,
             message: 'Course was deleted successfully!'
         });
+    });
+}
+
+exports.getCourses = async (req, res) => {
+    const coursePromise = new Promise((resolver, reject) => {
+        return resolver(Course.find({}).exec());
+    })
+    const courseEvaluatePromise = new Promise((resolver, reject) => {
+        return resolver(Evaluate.find({}).exec());
+    })
+
+    var courses = await coursePromise;
+    var evaluates = await courseEvaluatePromise;
+    var sortCourses = courses ? courses.sort().reverse() : [];
+    var sortEvaluates = evaluates ? evaluates.sort().reverse() : [];
+    res.status(200).send({
+        courses: sortCourses,
+        evaluates: sortEvaluates,
+        code: 200,
+        message: 'Get all courses and evaluates successfully!'
     });
 }
