@@ -53,7 +53,7 @@ exports.upload = async (req, res) => {
                     response.error = err;
                     throw err;
                 }
-                console.log(`File uploaded successfully. ${data.Location}`);
+                // console.log(`File uploaded successfully. ${data.Location}`);
                 response.key = data.Location;
                 Course.updateOne({ "_id": response.id }, { avatar: data.Location }).exec((err, course) => {
                     if (err) {
