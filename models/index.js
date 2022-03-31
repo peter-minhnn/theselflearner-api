@@ -9,6 +9,7 @@ db.evaluate = require("./evaluate.model");
 db.class = require("./class.model");
 db.menu = require("./menus.model");
 db.refreshToken = require("./refreshToken.model");
+db.aws = require("./aws.model");
 db.ROLES = ["user", "admin", "moderator"];
 
 module.exports = db;
