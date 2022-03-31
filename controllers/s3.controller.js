@@ -38,12 +38,8 @@ exports.upload = async (req, res) => {
                     res.status(500).send({ message: err });
                     return;
                 }
-                res.status(200).send({ message: "Course was updated successfully!", code: 201, data: course });
+                res.status(200).send({ message: "Course was updated successfully!", code: 201, data: response });
             });
         });
     });
-
-    
-
-    return response;
 }

@@ -6,12 +6,10 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const db = require("./models");
-const config = require("./config/db.config");
 const Role = db.role;
-const requestIp = require('request-ip');
 
 mongoose.Promise = global.Promise;
-mongoose.connect(config.DB, { useNewUrlParser: true }).then(
+mongoose.connect('mongodb+srv://admin:bdWdCKJ1xWw9E1Zb@minhnn.3k3a3.mongodb.net/theselflearner_db?retryWrites=true&w=majority', { useNewUrlParser: true }).then(
     () => {
         console.log('Database is connected');
         initial();
@@ -65,7 +63,6 @@ function initial() {
 //     }
 //     callback(null, corsOptions) // callback expects two parameters: error and options
 // }
-app.use(requestIp.mw());
 
 app.use(cors());
 // parse requests of content-type - application/json
