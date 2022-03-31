@@ -1,10 +1,7 @@
 const fs = require('fs');
 const db = require("../models");
 const AWS = require('aws-sdk');
-const s3 = new AWS.S3({
-    accessKeyId: process.env.AWS_ACCESSKEYID,
-    secretAccessKey: process.env.AWS_SECRETKEY
-});
+const s3 = new AWS.S3();
 var formidable = require('formidable');
 const Course = db.course;
 
