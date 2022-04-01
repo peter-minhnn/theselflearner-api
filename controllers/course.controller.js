@@ -135,3 +135,17 @@ exports.getCourses = async (req, res) => {
         message: 'Get all courses and evaluates successfully!'
     });
 }
+
+exports.getOneEvaluate = async (req, res) => {
+    Evaluate.findOne({ 'courseId': req.body.courseId }).exec((err, data) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+        res.status(200).send({
+            evaluate: data ? data.sort().reverse() : [],
+            code: 200,
+            message: 'Get evaluate by course id successfully!'
+        });
+    })
+}
