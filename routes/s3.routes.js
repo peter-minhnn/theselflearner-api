@@ -5,4 +5,5 @@ module.exports = function (app) {
     app.post("/api/s3/upload", [authJwt.verifyToken], controller.upload);
     app.get("/api/s3/getListS3Objects", [authJwt.verifyToken], controller.getListS3Objects);
     app.post("/api/s3/uploadS3Object", [authJwt.verifyToken], controller.uploadS3Object);
+    app.delete("/api/s3/deleteS3Object", [authJwt.verifyToken], controller.deleteS3Object);
 };

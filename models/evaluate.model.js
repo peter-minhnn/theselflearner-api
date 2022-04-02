@@ -5,6 +5,8 @@ const Evaluates = mongoose.model(
     evaluateId: String,
     courseId: String,
     studentEmail: String,
+    studentName: String,
+    studentAvatar: String,
     score: Number,
     comment: String,
     createdDate: String,

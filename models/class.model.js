@@ -4,6 +4,8 @@ const Classes = mongoose.model(
   new mongoose.Schema({
     courseId: String,
     studentEmail: String,
+    studentName: String,
+    phone: String,
     status: String,
     sDate: String,
     eDate: String,

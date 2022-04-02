@@ -1,6 +1,7 @@
 const db = require("../models");
 const Course = db.course;
 const Evaluate = db.evaluate;
+const Class = db.class;
 const { v4: uuidv4 } = require('uuid');
 
 exports.getAll = async (req, res) => {
@@ -49,6 +50,9 @@ exports.createCourse = async (req, res) => {
         trainerName: req.body.trainerName,
         courseFee: req.body.courseFee,
         duration: req.body.duration,
+        discount: req.body.discount,
+        sDate: req.body.sDate,
+        eDate: req.body.eDate,
         objectives: req.body.objectives,
         courseOutline: req.body.courseOutline,
         createdDate: new Date().toISOString(),
@@ -74,6 +78,9 @@ exports.updateCourse = async (req, res) => {
         trainerName: req.body.trainerName,
         courseFee: req.body.courseFee,
         duration: req.body.duration,
+        discount: req.body.discount,
+        sDate: req.body.sDate,
+        eDate: req.body.eDate,
         objectives: req.body.objectives,
         courseOutline: req.body.courseOutline,
         updatedDate: new Date().toISOString(),
@@ -148,4 +155,68 @@ exports.getOneEvaluate = async (req, res) => {
             message: 'Get evaluate by course id successfully!'
         });
     })
+}
+
+exports.addRating = async (req, res) => {
+    const evaluate = new Evaluate({
+        courseId: req.body.courseId,
+        studentEmail: req.body.studentEmail,
+        studentFullName: req.body.studentFullName,
+        studentAvatar: req.body.studentAvatar,
+        score: req.body.score,
+        comment: req.body.comment,
+        createdDate: new Date().toISOString(),
+        createdUser: req.body.createdUser
+    });
+    
+    evaluate.save((err, response) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+        res.send({ message: "Evaluate was created successfully!", code: 201 });
+    });
+}
+
+exports.addComment = async (req, res) => {
+    const data = {
+        courseId: req.body.courseId,
+        studentEmail: req.body.studentEmail,
+        studentName: req.body.studentName,
+        studentAvatar: req.body.studentAvatar,
+        score: req.body.score,
+        comment: req.body.comment,
+        updatedDate: new Date().toISOString(),
+        updatedUser: req.body.updatedUser
+    }
+
+    Evaluate.updateOne({ '_id': req.body._id }, data).exec((err, response) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+        res.send({ message: "Evaluate was updated successfully!", code: 201 });
+    });
+}
+
+exports.enroll = async (req, res) => {
+    const enrolClass = new Class({
+        courseId: req.body.courseId,
+        studentEmail: req.body.courseId,
+        studentName: req.body.studentName,
+        phone: req.body.phone,
+        status: 0,
+        sDate: req.body.sDate,
+        eDate: req.body.eDate,
+        createdDate: new Date().toISOString(),
+        createdUser: req.body.createdUser
+    });
+
+    enrolClass.save((err, response) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+        res.send({ message: "User enroll was created successfully!", code: 201 });
+    });
 }

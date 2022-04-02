@@ -156,7 +156,7 @@ exports.uploadS3Object = async (req, res) => {
                 ACL: 'public-read'
             };
 
-            switch (files.uploadType) {
+            switch (fields.uploadType) {
                 case 'general':
                     params.Key = `${fields.parentFolder}/${fields.folderType}/${files.File.originalFilename}`;
                     break;
@@ -170,11 +170,11 @@ exports.uploadS3Object = async (req, res) => {
             // Uploading files to the bucket
             s3.upload(params, function (err, data) {
                 if (err) {
-                    response.error = err;
-                    throw err;
+                    res.status(500).send({ message: err });
+                    return;
                 }
                 // console.log(`File uploaded successfully. ${data.Location}`);
-                if (files.uploadType === 'user') {
+                if (fields.uploadType === 'user') {
                     User.updateOne({ "_id": files.id }, { avatar: data.Location }).exec((err, user) => {
                         if (err) {
                             res.status(500).send({ message: err });
@@ -189,4 +189,34 @@ exports.uploadS3Object = async (req, res) => {
             });
         })
     });
+}
+
+exports.deleteS3Object = async (req, res) => {
+    Aws.find().exec((err, keys) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+
+        const s3 = new AWS.S3({
+            params: { Bucket: process.env.AWS_S3BUCKETNAME },
+            accessKeyId: keys[0].accessKeyId,
+            secretAccessKey: keys[0].secretAccessKey
+        });
+
+        // Setting up S3 delete parameters
+        var params = {
+            Key: req.body.key, // File name you want to delete as in S3
+        };
+
+        // Uploading files to the bucket
+        s3.deleteObject(params, function (err, data) {
+            if (err) {
+                res.status(500).send({ message: err });
+                    return;
+            }
+            // console.log(`File uploaded successfully. ${data.Location}`);
+            res.status(200).send({ message: "S3 object was deleted successfully!", code: 201 });
+        });
+    })
 }
