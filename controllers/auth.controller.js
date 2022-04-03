@@ -25,10 +25,9 @@ exports.signup = (req, res) => {
         phone: req.body.phone,
         password: bcrypt.hashSync(req.body.password, 8),
         rememberPwd: req.body.password,
+        avatar: req.body.avatar,
         createdDate: new Date().toISOString(),
-        createdUser: "",
-        updatedDate: "",
-        updatedUser: ""
+        createdUser: ""
     });
     user.save((err, user) => {
         if (err) {
@@ -122,6 +121,7 @@ exports.signin = (req, res) => {
                 fullname: user.fullname,
                 phone: user.phone,
                 roles: user.roles.name,
+                avatar: user.avatar,
                 accessToken: token,
                 page: 'user',
                 refreshToken: refreshToken,
@@ -318,17 +318,17 @@ exports.findUser = (req, res) => {
         let refreshToken = await RefreshToken.createToken(user);
 
         //Create roles for user
-        var authorities = [];
-        for (let i = 0; i < user.roles.length; i++) {
-            authorities.push("ROLE_" + user.roles[i].name.toUpperCase());
-        }
+        // var authorities = [];
+        // for (let i = 0; i < user.roles.length; i++) {
+        //     authorities.push("ROLE_" + user.roles[i].name.toUpperCase());
+        // }
 
         res.status(200).send({
             id: user._id,
             email: user.email,
             fullname: user.fullname,
             phone: user.phone,
-            roles: authorities,
+            roles: user.roles.name,
             accessToken: token,
             refreshToken: refreshToken,
             page: 'admin',

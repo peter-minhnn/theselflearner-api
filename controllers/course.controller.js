@@ -144,59 +144,66 @@ exports.getCourses = async (req, res) => {
 }
 
 exports.getOneEvaluate = async (req, res) => {
-    Evaluate.findOne({ 'courseId': req.body.courseId }).exec((err, data) => {
+    Evaluate.find({ 'courseId': req.query.courseId }).exec((err, data) => {
         if (err) {
             res.status(500).send({ message: err });
             return;
         }
         res.status(200).send({
-            evaluate: data ? data.sort().reverse() : [],
+            evaluates: data,
             code: 200,
             message: 'Get evaluate by course id successfully!'
         });
     })
 }
 
-exports.addRating = async (req, res) => {
-    const evaluate = new Evaluate({
-        courseId: req.body.courseId,
-        studentEmail: req.body.studentEmail,
-        studentFullName: req.body.studentFullName,
-        studentAvatar: req.body.studentAvatar,
-        score: req.body.score,
-        comment: req.body.comment,
-        createdDate: new Date().toISOString(),
-        createdUser: req.body.createdUser
-    });
-    
-    evaluate.save((err, response) => {
-        if (err) {
-            res.status(500).send({ message: err });
-            return;
+exports.addEvaluate = async (req, res) => {
+    Evaluate.find({ 'courseId': req.body.courseId }).exec((err, data) => {
+        if (data.length > 0) {
+            data.map(evaluate => {
+                if (evaluate.studentEmail === req.body.studentEmail) {
+                    const update = {
+                        courseId: req.body.courseId,
+                        studentEmail: req.body.studentEmail,
+                        studentName: req.body.studentName,
+                        studentAvatar: req.body.studentAvatar,
+                        score: req.body.score,
+                        comment: req.body.comment,
+                        updatedDate: new Date().toISOString(),
+                        updatedUser: req.body.updatedUser
+                    }
+        
+                    Evaluate.updateOne({ '_id': evaluate._id }, update).exec((err, response) => {
+                        if (err) {
+                            res.status(500).send({ message: err });
+                            return;
+                        }
+                        res.send({ message: "Evaluate was updated successfully!", code: 201 });
+                    });
+                }
+            })
         }
-        res.send({ message: "Evaluate was created successfully!", code: 201 });
-    });
-}
+        else {
+            const evaluate = new Evaluate({
+                courseId: req.body.courseId,
+                studentEmail: req.body.studentEmail,
+                studentFullName: req.body.studentFullName,
+                studentAvatar: req.body.studentAvatar,
+                score: req.body.score,
+                comment: req.body.comment,
+                createdDate: new Date().toISOString(),
+                createdUser: req.body.createdUser
+            });
 
-exports.addComment = async (req, res) => {
-    const data = {
-        courseId: req.body.courseId,
-        studentEmail: req.body.studentEmail,
-        studentName: req.body.studentName,
-        studentAvatar: req.body.studentAvatar,
-        score: req.body.score,
-        comment: req.body.comment,
-        updatedDate: new Date().toISOString(),
-        updatedUser: req.body.updatedUser
-    }
-
-    Evaluate.updateOne({ '_id': req.body._id }, data).exec((err, response) => {
-        if (err) {
-            res.status(500).send({ message: err });
-            return;
+            evaluate.save((err, response) => {
+                if (err) {
+                    res.status(500).send({ message: err });
+                    return;
+                }
+                res.send({ message: "Evaluate was created successfully!", code: 201 });
+            });
         }
-        res.send({ message: "Evaluate was updated successfully!", code: 201 });
-    });
+    })
 }
 
 exports.enroll = async (req, res) => {
