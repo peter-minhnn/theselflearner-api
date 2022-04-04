@@ -1,8 +1,10 @@
 const db = require("../models");
+const User = db.user;
 const Course = db.course;
 const Evaluate = db.evaluate;
 const Class = db.class;
 const { v4: uuidv4 } = require('uuid');
+const Users = require("../models/user.model");
 
 exports.getAll = async (req, res) => {
     const coursePromise = new Promise((resolver, reject) => {
@@ -157,7 +159,9 @@ exports.getOneEvaluate = async (req, res) => {
     })
 }
 
-exports.addEvaluate = async (req, res) => {
+exports.addEvaluate = (req, res) => {
+    User.updateOne({ 'email': req.body.studentEmail }, { fullname: req.body.studentName, phone: req.body.studentPhone}).exec();
+    
     Evaluate.find({ 'courseId': req.body.courseId }).exec((err, data) => {
         if (data.length > 0) {
             data.map(evaluate => {
@@ -167,12 +171,13 @@ exports.addEvaluate = async (req, res) => {
                         studentEmail: req.body.studentEmail,
                         studentName: req.body.studentName,
                         studentAvatar: req.body.studentAvatar,
+                        studentPhone: req.body.studentPhone,
                         score: req.body.score,
                         comment: req.body.comment,
                         updatedDate: new Date().toISOString(),
                         updatedUser: req.body.updatedUser
                     }
-        
+
                     Evaluate.updateOne({ '_id': evaluate._id }, update).exec((err, response) => {
                         if (err) {
                             res.status(500).send({ message: err });

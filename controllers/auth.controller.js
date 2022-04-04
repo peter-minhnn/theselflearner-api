@@ -324,15 +324,13 @@ exports.findUser = (req, res) => {
         // }
 
         res.status(200).send({
-            id: user._id,
             email: user.email,
             fullname: user.fullname,
             phone: user.phone,
             roles: user.roles.name,
             accessToken: token,
             refreshToken: refreshToken,
-            page: 'admin',
-            code: 201,
+            code: 200,
             message: 'Login admin successfully!'
         });
     });
