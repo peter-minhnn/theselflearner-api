@@ -4,7 +4,29 @@ const Course = db.course;
 const Evaluate = db.evaluate;
 const Class = db.class;
 const { v4: uuidv4 } = require('uuid');
+const hbs = require('nodemailer-express-handlebars');
+const nodemailer = require('nodemailer');
+const path = require('path');
 const Users = require("../models/user.model");
+
+const transporter = nodemailer.createTransport({
+    port: 465,
+    host: "smtp.gmail.com",
+    auth: {
+        user: process.env.EMAILNAME,
+        pass: process.env.SMTP_PWD,
+    },
+    secure: true,
+});
+
+// point to the template folder
+const handlebarOptions = {
+    viewEngine: {
+        partialsDir: path.resolve('./mail-template/'),
+        defaultLayout: false,
+    },
+    viewPath: path.resolve('./mail-template/'),
+};
 
 exports.getAll = async (req, res) => {
     const coursePromise = new Promise((resolver, reject) => {
@@ -160,7 +182,7 @@ exports.getOneEvaluate = async (req, res) => {
 }
 
 exports.addEvaluate = (req, res) => {
-    User.findOne({'email':req.body.studentEmail }).exec((err, user) => {
+    User.findOne({ 'email': req.body.studentEmail }).exec((err, user) => {
         if (err) {
             res.status(500).send({ message: err });
             return;
@@ -226,11 +248,12 @@ exports.addEvaluate = (req, res) => {
 }
 
 exports.enroll = async (req, res) => {
+    //Define new object Class data
     const enrolClass = new Class({
         courseId: req.body.courseId,
-        studentEmail: req.body.courseId,
+        studentEmail: req.body.studentEmail,
         studentName: req.body.studentName,
-        phone: req.body.phone,
+        studentPhone: req.body.studentPhone,
         status: 0,
         sDate: req.body.sDate,
         eDate: req.body.eDate,
@@ -238,11 +261,36 @@ exports.enroll = async (req, res) => {
         createdUser: req.body.createdUser
     });
 
+    var mailOptions = {};
+    mailOptions = {
+        from: process.env.EMAILNAME, // sender address
+        to: req.body.studentEmail
+    }
+
+    // use a template file with nodemailer
+    transporter.use('compile', hbs(handlebarOptions))
+
+    mailOptions.subject = 'Welcome to The Self-learner!';
+    mailOptions.template = 'enroll';
+    mailOptions.context = {
+        provider: req.body.provider,
+        password: req.body.password,
+        homeUrl: req.body.homeUrl
+    };
+    // trigger the sending of the E-mail
+
     enrolClass.save((err, response) => {
         if (err) {
             res.status(500).send({ message: err });
             return;
         }
-        res.send({ message: "User enroll was created successfully!", code: 201 });
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                return console.log(error);
+            }
+            console.log('Message sent: ' + info.response);
+        });
+        res.send({ message: "User enroll was created and sent email confirmation successfully!", code: 201 });
     });
 }
