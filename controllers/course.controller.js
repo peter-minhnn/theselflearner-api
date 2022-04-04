@@ -160,40 +160,54 @@ exports.getOneEvaluate = async (req, res) => {
 }
 
 exports.addEvaluate = (req, res) => {
-    User.updateOne({ 'email': req.body.studentEmail }, { fullname: req.body.studentName, phone: req.body.studentPhone}).exec();
-    
-    Evaluate.find({ 'courseId': req.body.courseId }).exec((err, data) => {
-        if (data.length > 0) {
-            data.map(evaluate => {
-                if (evaluate.studentEmail === req.body.studentEmail) {
-                    const update = {
-                        courseId: req.body.courseId,
-                        studentEmail: req.body.studentEmail,
-                        studentName: req.body.studentName,
-                        studentAvatar: req.body.studentAvatar,
-                        studentPhone: req.body.studentPhone,
-                        score: req.body.score,
-                        comment: req.body.comment,
-                        updatedDate: new Date().toISOString(),
-                        updatedUser: req.body.updatedUser
-                    }
-
-                    Evaluate.updateOne({ '_id': evaluate._id }, update).exec((err, response) => {
-                        if (err) {
-                            res.status(500).send({ message: err });
-                            return;
-                        }
-                        res.send({ message: "Evaluate was updated successfully!", code: 201 });
-                    });
+    User.findOne({'email':req.body.studentEmail }).exec((err, user) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+        if (user) {
+            let data = {
+                fullname: user.email ? user.email : req.body.studentName,
+                phone: user.phone ? user.phone : req.body.studentPhone,
+            }
+            User.updateOne({ 'email': req.body.studentEmail }, data).exec((err, updated) => {
+                if (err) {
+                    res.status(500).send({ message: err });
+                    return;
                 }
-            })
+            });
+        }
+    })
+
+    Evaluate.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail }).exec((err, data) => {
+        if (data) {
+            const update = {
+                courseId: req.body.courseId,
+                studentEmail: req.body.studentEmail,
+                studentName: req.body.studentName,
+                studentAvatar: req.body.studentAvatar,
+                studentPhone: req.body.studentPhone,
+                score: req.body.score,
+                comment: req.body.comment,
+                updatedDate: new Date().toISOString(),
+                updatedUser: req.body.updatedUser
+            }
+
+            Evaluate.updateOne({ '_id': data._id }, update).exec((err, response) => {
+                if (err) {
+                    res.status(500).send({ message: err });
+                    return;
+                }
+                res.send({ message: "Evaluate was updated successfully!", code: 201 });
+            });
         }
         else {
             const evaluate = new Evaluate({
                 courseId: req.body.courseId,
                 studentEmail: req.body.studentEmail,
-                studentFullName: req.body.studentFullName,
+                studentName: req.body.studentName,
                 studentAvatar: req.body.studentAvatar,
+                studentPhone: req.body.studentPhone,
                 score: req.body.score,
                 comment: req.body.comment,
                 createdDate: new Date().toISOString(),
