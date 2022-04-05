@@ -189,7 +189,7 @@ exports.addEvaluate = (req, res) => {
         }
         if (user) {
             let data = {
-                fullname: user.email ? user.email : req.body.studentName,
+                fullname: user.fullname ? user.fullname : req.body.studentName,
                 phone: user.phone ? user.phone : req.body.studentPhone,
             }
             User.updateOne({ 'email': req.body.studentEmail }, data).exec((err, updated) => {
@@ -198,69 +198,56 @@ exports.addEvaluate = (req, res) => {
                     return;
                 }
             });
-        }
-    })
 
-    Evaluate.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail }).exec((err, data) => {
-        if (data) {
-            const update = {
-                courseId: req.body.courseId,
-                studentEmail: req.body.studentEmail,
-                studentName: req.body.studentName,
-                studentAvatar: req.body.studentAvatar,
-                studentPhone: req.body.studentPhone,
-                score: req.body.score,
-                comment: req.body.comment,
-                updatedDate: new Date().toISOString(),
-                updatedUser: req.body.updatedUser
-            }
+            Evaluate.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail }).exec((err, data) => {
+                if (data) {
+                    const update = {
+                        courseId: req.body.courseId,
+                        studentEmail: user.email,
+                        studentName: user.fullname,
+                        studentAvatar: user.avatar,
+                        studentPhone: user.phone,
+                        score: req.body.score,
+                        comment: req.body.comment,
+                        updatedDate: new Date().toISOString(),
+                        updatedUser: req.body.updatedUser
+                    }
 
-            Evaluate.updateOne({ '_id': data._id }, update).exec((err, response) => {
-                if (err) {
-                    res.status(500).send({ message: err });
-                    return;
+                    Evaluate.updateOne({ '_id': data._id }, update).exec((err, response) => {
+                        if (err) {
+                            res.status(500).send({ message: err });
+                            return;
+                        }
+                        res.send({ message: "Evaluate was updated successfully!", code: 201 });
+                    });
                 }
-                res.send({ message: "Evaluate was updated successfully!", code: 201 });
-            });
-        }
-        else {
-            const evaluate = new Evaluate({
-                courseId: req.body.courseId,
-                studentEmail: req.body.studentEmail,
-                studentName: req.body.studentName,
-                studentAvatar: req.body.studentAvatar,
-                studentPhone: req.body.studentPhone,
-                score: req.body.score,
-                comment: req.body.comment,
-                createdDate: new Date().toISOString(),
-                createdUser: req.body.createdUser
-            });
+                else {
+                    const evaluate = new Evaluate({
+                        courseId: req.body.courseId,
+                        studentEmail: user.email,
+                        studentName: user.fullname,
+                        studentAvatar: user.avatar,
+                        studentPhone: user.phone,
+                        score: req.body.score,
+                        comment: req.body.comment,
+                        createdDate: new Date().toISOString(),
+                        createdUser: req.body.createdUser
+                    });
 
-            evaluate.save((err, response) => {
-                if (err) {
-                    res.status(500).send({ message: err });
-                    return;
+                    evaluate.save((err, response) => {
+                        if (err) {
+                            res.status(500).send({ message: err });
+                            return;
+                        }
+                        res.send({ message: "Evaluate was created successfully!", code: 201 });
+                    });
                 }
-                res.send({ message: "Evaluate was created successfully!", code: 201 });
-            });
+            })
         }
     })
 }
 
 exports.enroll = async (req, res) => {
-    //Define new object Class data
-    const enrolClass = new Class({
-        courseId: req.body.courseId,
-        studentEmail: req.body.studentEmail,
-        studentName: req.body.studentName,
-        studentPhone: req.body.studentPhone,
-        status: 0,
-        sDate: req.body.sDate,
-        eDate: req.body.eDate,
-        createdDate: new Date().toISOString(),
-        createdUser: req.body.createdUser
-    });
-
     var mailOptions = {};
     mailOptions = {
         from: process.env.EMAILNAME, // sender address
@@ -270,27 +257,47 @@ exports.enroll = async (req, res) => {
     // use a template file with nodemailer
     transporter.use('compile', hbs(handlebarOptions))
 
-    mailOptions.subject = 'Welcome to The Self-learner!';
+    mailOptions.subject = `Enrollment of ${req.body.title} by ${req.body.studentName}`;
     mailOptions.template = 'enroll';
-    mailOptions.context = {
-        provider: req.body.provider,
-        password: req.body.password,
-        homeUrl: req.body.homeUrl
-    };
-    // trigger the sending of the E-mail
 
-    enrolClass.save((err, response) => {
-        if (err) {
-            res.status(500).send({ message: err });
-            return;
-        }
-
-        transporter.sendMail(mailOptions, function (error, info) {
-            if (error) {
-                return console.log(error);
+    Class.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail })
+        .exec((err, result) => {
+            if (err) {
+                console.log('enroll findOne Class: ', err);
+                res.status(500).send({ message: err });
+                return;
             }
-            console.log('Message sent: ' + info.response);
-        });
-        res.send({ message: "User enroll was created and sent email confirmation successfully!", code: 201 });
-    });
+            if (!result) {
+                //Define new object Class data
+                const enrolClass = new Class({
+                    courseId: req.body.courseId,
+                    studentEmail: req.body.studentEmail,
+                    studentName: req.body.studentName,
+                    studentPhone: req.body.studentPhone,
+                    status: 0,
+                    sDate: req.body.sDate,
+                    eDate: req.body.eDate,
+                    createdDate: new Date().toISOString(),
+                    createdUser: req.body.createdUser
+                });
+
+                enrolClass.save((err, response) => {
+                    if (err) {
+                        res.status(500).send({ message: err });
+                        return;
+                    }
+
+                    transporter.sendMail(mailOptions, function (error, info) {
+                        if (error) {
+                            return console.log(error);
+                        }
+                        console.log('Message sent: ' + info.response);
+                    });
+                    res.status(200).send({ message: "User enroll was created and sent email confirmation successfully!", code: 201 });
+                });
+            }
+            else {
+                res.status(200).send({ message: "You have already signed up for a class!", code: 200 });
+            }
+        })
 }

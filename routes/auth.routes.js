@@ -10,4 +10,5 @@ module.exports = function (app) {
     app.post("/api/auth/deleteRefreshToken", controller.deleteRefreshToken);// Delete refresh token
     app.post("/api/auth/sendEmailResetPws", controller.sendEmailResetPws);// Send email for reset password
     app.post("/api/auth/findUser", controller.findUser);// Find user by email
+    app.post("/api/auth/updateProfile", controller.updateProfile);// Update profile user
 };

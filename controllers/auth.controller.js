@@ -2,6 +2,8 @@ require('dotenv').config();
 const config = require("../config/auth.config");
 const db = require("../models");
 const User = db.user;
+const Evaluate = db.evaluate;
+const Class = db.class;
 const Role = db.role;
 const RefreshToken = db.refreshToken;
 const hbs = require('nodemailer-express-handlebars');
@@ -327,11 +329,96 @@ exports.findUser = (req, res) => {
             email: user.email,
             fullname: user.fullname,
             phone: user.phone,
+            avatar: user.avatar,
             roles: user.roles.name,
             accessToken: token,
             refreshToken: refreshToken,
             code: 200,
             message: 'Login admin successfully!'
         });
+    });
+}
+
+exports.updateProfile = (req, res) => {
+    User.findOne({
+        email: req.body.email
+    }).populate("roles", "-__v").exec(async (err, user) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+
+        if (!user) {
+            return res.status(200).send({ message: "Email does not exist!", code: 400 });
+        }
+
+        var passwordIsValid = bcrypt.compareSync(
+            req.body.oldpassword,
+            user.password
+        );
+
+        //Check invalid password
+        if (!passwordIsValid) {
+            return res.status(200).send({
+                accessToken: null,
+                message: "Invalid Password!",
+                code: 400
+            });
+        }
+
+        let updateUser = {
+            fullname: req.body.fullname,
+            phone: req.body.phone,
+            password: bcrypt.hashSync(req.body.password, 8),
+            rememberPwd: req.body.password,
+            avatar: req.body.avatar,
+        }
+
+        Evaluate.find({ 'studentEmail': req.body.email }).exec((err, evaluates) => {
+            if (err) {
+                res.status(500).send({ message: err });
+                return;
+            }
+            if (evaluates && evaluates.length > 0) {
+                evaluates.forEach(elem => {
+                    Evaluate.updateOne({ 'studentEmail': req.body.email }, 
+                    { 
+                        studentName: req.body.fullname, 
+                        studentPhone: req.body.phone,
+                        studentAvatar: req.body.avatar
+                    }).exec();
+                })
+            }
+        });
+
+        Class.find({ 'studentEmail': req.body.email }).exec((err, classes) => {
+            if (err) {
+                res.status(500).send({ message: err });
+                return;
+            }
+            if (classes && classes.length > 0) {
+                classes.forEach(elem => {
+                    Evaluate.updateOne({ 'studentEmail': elem.studentEmail }, 
+                    { 
+                        studentName: req.body.fullname, 
+                        studentPhone: req.body.phone,
+                    }).exec();
+                })
+            }
+        });
+
+        User.updateOne({ 'email': req.body.email }, updateUser).exec((err, updated) => {
+            if (err) {
+                res.status(500).send({ message: err });
+                return;
+            }
+            res.status(200).send({
+                fullname: user.fullname,
+                phone: user.phone,
+                avatar: user.avatar,
+                code: 201,
+                message: 'User was updated successfully!'
+            });
+        })
     });
 }

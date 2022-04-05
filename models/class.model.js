@@ -5,7 +5,7 @@ const Classes = mongoose.model(
     courseId: String,
     studentEmail: String,
     studentName: String,
-    phone: String,
+    studentPhone: String,
     status: String,
     sDate: String,
     eDate: String,
