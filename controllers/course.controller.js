@@ -9,25 +9,6 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 const Users = require("../models/user.model");
 
-const transporter = nodemailer.createTransport({
-    port: 465,
-    host: "smtp.gmail.com",
-    auth: {
-        user: process.env.EMAILNAME,
-        pass: process.env.SMTP_PWD,
-    },
-    secure: true,
-});
-
-// point to the template folder
-const handlebarOptions = {
-    viewEngine: {
-        partialsDir: path.resolve('./mail-template/'),
-        defaultLayout: false,
-    },
-    viewPath: path.resolve('./mail-template/'),
-};
-
 exports.getAll = async (req, res) => {
     const coursePromise = new Promise((resolver, reject) => {
         return resolver(Course.find({}).exec());
@@ -248,6 +229,25 @@ exports.addEvaluate = (req, res) => {
 }
 
 exports.enroll = async (req, res) => {
+    var transporter = nodemailer.createTransport({
+        port: 465,
+        host: "smtp.gmail.com",
+        auth: {
+            user: process.env.EMAILNAME,
+            pass: process.env.SMTP_PWD,
+        },
+        secure: true,
+    });
+    
+    // point to the template folder
+    var handlebarOptions = {
+        viewEngine: {
+            partialsDir: path.resolve('./mail-template/'),
+            defaultLayout: false,
+        },
+        viewPath: path.resolve('./mail-template/'),
+    };
+    
     var mailOptions = {};
     mailOptions = {
         from: process.env.EMAILNAME, // sender address
