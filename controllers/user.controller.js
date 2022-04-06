@@ -79,7 +79,7 @@ exports.create = (req, res) => {
                     res.status(500).send({ message: err });
                     return;
                 }
-                user.roles = [role._id];
+                user.roles = role._id;
                 user.save(err => {
                     if (err) {
                         res.status(500).send({ message: err });
@@ -100,18 +100,32 @@ exports.update = (req, res) => {
         password: bcrypt.hashSync(req.body.password, 8),
         rememberPwd: req.body.password,
         updatedDate: new Date().toISOString(),
-        updatedUser: req.body.updatedUser
+        updatedUser: req.body.updatedUser,
+        roles: ''
     }
-    User.updateOne({ email: req.body.email }, updateData).exec((err, user) => {
-        if (err) {
-            res.status(500).send({ message: err });
-            return;
+
+    Role.find(
+        {
+            name: { $in: req.body.roles }
+        },
+        (err, roles) => {
+            if (err) {
+                res.status(500).send({ message: err });
+                return;
+            }
+            updateData.roles = roles.map(role => role._id);
+            User.updateOne({ email: req.body.email }, updateData).exec((err, user) => {
+                if (err) {
+                    res.status(500).send({ message: err });
+                    return;
+                }
+                res.status(200).send({
+                    code: 201,
+                    message: 'User was updated successfully!'
+                });
+            });
         }
-        res.status(200).send({
-            code: 201,
-            message: 'User was updated successfully!'
-        });
-    });
+    );
 }
 
 exports.delete = (req, res) => {
