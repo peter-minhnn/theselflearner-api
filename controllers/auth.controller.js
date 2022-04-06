@@ -277,12 +277,13 @@ exports.sendEmailResetPws = (req, res) => {
 
     if (req.body.type === 'provider') {
         mailOptions.subject = 'Welcome to The Self-learner!';
-        mailOptions.template = 'register';
+        mailOptions.template = 'registered';
         mailOptions.context = {
-            provider: req.body.provider,
+            provider: '',
             password: req.body.password,
             homeUrl: req.body.homeUrl
         };
+        if (req.body.provider) mailOptions.context.provider = `Your new TSL account has been created using ${req.body.provider}`;
     }
 
     // trigger the sending of the E-mail

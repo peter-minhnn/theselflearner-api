@@ -259,6 +259,10 @@ exports.enroll = async (req, res) => {
 
     mailOptions.subject = `Enrollment of ${req.body.title} by ${req.body.studentName}`;
     mailOptions.template = 'enroll';
+    mailOptions.context = {
+        title: 'Confirmation!',
+        message: 'You have successfully enrolled in the class.'
+    }
 
     Class.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail })
         .exec((err, result) => {
