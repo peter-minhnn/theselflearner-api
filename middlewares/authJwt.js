@@ -90,7 +90,9 @@ isModerator = (req, res, next) => {
 };
 
 isLoginAdminOrMod = (req, res, next) => {
-    User.findOne({ email: req.body.email }).exec((err, user) => {
+    User.findOne({ email: req.body.email })
+    .populate("roles", "-__v")
+    .exec((err, user) => {
         if (err) {
             res.status(500).send({ message: err });
             return;
