@@ -52,7 +52,7 @@ exports.signup = (req, res) => {
                             res.status(500).send({ message: err });
                             return;
                         }
-                        res.send({ message: "User was registered successfully!", code: 201 });
+                        res.send({ message: "Đăng ký thành công", code: 201 });
                     });
                 }
             );
@@ -68,7 +68,7 @@ exports.signup = (req, res) => {
                         res.status(500).send({ message: err });
                         return;
                     }
-                    res.send({ message: "User was registered successfully!", code: 201 });
+                    res.send({ message: "Đăng ký thành công", code: 201 });
                 });
             });
         }
@@ -86,7 +86,7 @@ exports.signin = (req, res) => {
                 return;
             }
             if (!user) {
-                return res.status(200).send({ message: "Email does not exist!", code: 403 });
+                return res.status(200).send({ message: "Email không tồn tại", code: 403 });
             }
             var passwordIsValid = bcrypt.compareSync(
                 req.body.password,
@@ -128,7 +128,7 @@ exports.signin = (req, res) => {
                 page: 'user',
                 refreshToken: refreshToken,
                 code: 201,
-                message: 'Login successfully!'
+                message: 'Đăng nhập thành công'
             });
         });
 };
@@ -177,7 +177,7 @@ exports.signinAdmin = (req, res) => {
                 return;
             }
             if (!user) {
-                return res.status(200).send({ message: "Email does not exist!", code: 400 });
+                return res.status(200).send({ message: "Email không tồn tại", code: 400 });
             }
             var passwordIsValid = bcrypt.compareSync(
                 req.body.password,
@@ -186,7 +186,7 @@ exports.signinAdmin = (req, res) => {
             if (!passwordIsValid) {
                 return res.status(200).send({
                     accessToken: null,
-                    message: "Invalid Password!",
+                    message: "Mật khẩu không hợp lệ",
                     code: 400
                 });
             }
@@ -215,7 +215,7 @@ exports.signinAdmin = (req, res) => {
                 refreshToken: refreshToken,
                 page: 'admin',
                 code: 201,
-                message: 'Login admin successfully!'
+                message: 'Đăng nhập trang quản lý thành công'
             });
         });
 };
@@ -276,14 +276,14 @@ exports.sendEmailResetPws = (req, res) => {
     transporter.use('compile', hbs(handlebarOptions))
 
     if (req.body.type === 'provider') {
-        mailOptions.subject = 'Welcome to The Self-learner!';
+        mailOptions.subject = 'Chào mừng bạn đến với The Self-learner';
         mailOptions.template = 'registered';
         mailOptions.context = {
             provider: '',
             password: req.body.password,
             homeUrl: req.body.homeUrl
         };
-        if (req.body.provider) mailOptions.context.provider = `Your new TSL account has been created using ${req.body.provider}`;
+        if (req.body.provider) mailOptions.context.provider = `Tài khoản của bạn đã được tạo mới thông qua đăng nhập với ${req.body.provider}`;
     }
 
     // trigger the sending of the E-mail
@@ -294,7 +294,7 @@ exports.sendEmailResetPws = (req, res) => {
         console.log('Message sent: ' + info.response);
         res.status(200).send({
             code: 201,
-            message: 'Sent email suceeded.'
+            message: 'Gửi email thành công'
         })
     });
 }
@@ -309,7 +309,7 @@ exports.findUser = (req, res) => {
         }
 
         if (!user) {
-            return res.status(200).send({ message: "Email does not exist!", code: 400 });
+            return res.status(200).send({ message: "Email không tồn tại", code: 400 });
         }
 
         //Create token authorize for user
@@ -335,7 +335,7 @@ exports.findUser = (req, res) => {
             accessToken: token,
             refreshToken: refreshToken,
             code: 200,
-            message: 'Login admin successfully!'
+            message: 'Đăng nhập thành công'
         });
     });
 }
@@ -350,7 +350,7 @@ exports.updateProfile = (req, res) => {
         }
 
         if (!user) {
-            return res.status(200).send({ message: "Email does not exist!", code: 400 });
+            return res.status(200).send({ message: "Email không tồn tại", code: 400 });
         }
 
         var passwordIsValid = bcrypt.compareSync(
@@ -362,7 +362,7 @@ exports.updateProfile = (req, res) => {
         if (!passwordIsValid) {
             return res.status(200).send({
                 accessToken: null,
-                message: "Invalid Password!",
+                message: "Mật khẩu không hợp lệ",
                 code: 400
             });
         }
@@ -418,7 +418,7 @@ exports.updateProfile = (req, res) => {
                 phone: user.phone,
                 avatar: user.avatar,
                 code: 201,
-                message: 'User was updated successfully!'
+                message: 'Cập nhật thông tin tài khoản thành công'
             });
         })
     });

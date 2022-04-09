@@ -25,7 +25,7 @@ exports.getAll = async (req, res) => {
         courses: sortCourses,
         evaluates: sortEvaluates,
         code: 200,
-        message: 'Get all courses and evaluates successfully!'
+        message: 'Lấy toàn bộ khóa học thành công'
     });
 }
 
@@ -41,7 +41,7 @@ exports.getCourseById = (req, res) => {
         res.status(200).send({
             course: course,
             code: 200,
-            message: 'Get user successfully!'
+            message: 'Lấy khóa học thành công'
         });
     });
 }
@@ -72,7 +72,7 @@ exports.createCourse = async (req, res) => {
             res.status(500).send({ message: err });
             return;
         }
-        res.send({ message: "Course was created successfully!", code: 201 });
+        res.send({ message: "Khóa học tạo thành công", code: 201 });
     });
 }
 
@@ -98,7 +98,7 @@ exports.updateCourse = async (req, res) => {
             res.status(500).send({ message: err });
             return;
         }
-        res.status(200).send({ message: "Course was updated successfully!", code: 201, data: course });
+        res.status(200).send({ message: "Cập nhật thành công", code: 201, data: course });
     });
 }
 
@@ -110,7 +110,7 @@ exports.deleteCourse = (req, res) => {
         }
         res.status(200).send({
             code: 201,
-            message: 'Course was deleted successfully!'
+            message: 'Xóa thành công'
         });
     });
 }
@@ -123,7 +123,7 @@ exports.deleteCourseEvaluate = (req, res) => {
         }
         res.status(200).send({
             code: 201,
-            message: 'Course was deleted successfully!'
+            message: 'Xóa thành công'
         });
     });
 }
@@ -144,7 +144,7 @@ exports.getCourses = async (req, res) => {
         courses: sortCourses,
         evaluates: sortEvaluates,
         code: 200,
-        message: 'Get all courses and evaluates successfully!'
+        message: 'Lấy toàn bộ đánh giá thành công'
     });
 }
 
@@ -157,7 +157,7 @@ exports.getOneEvaluate = async (req, res) => {
         res.status(200).send({
             evaluates: data,
             code: 200,
-            message: 'Get evaluate by course id successfully!'
+            message: `Lấy đánh giá theo khóa học thành công`
         });
     })
 }
@@ -199,7 +199,7 @@ exports.addEvaluate = (req, res) => {
                             res.status(500).send({ message: err });
                             return;
                         }
-                        res.send({ message: "Evaluate was updated successfully!", code: 201 });
+                        res.send({ message: "Cập nhật đánh giá thành công!", code: 201 });
                     });
                 }
                 else {
@@ -220,7 +220,7 @@ exports.addEvaluate = (req, res) => {
                             res.status(500).send({ message: err });
                             return;
                         }
-                        res.send({ message: "Evaluate was created successfully!", code: 201 });
+                        res.send({ message: "Tạo mới đánh giá thành công", code: 201 });
                     });
                 }
             })
@@ -260,8 +260,8 @@ exports.enroll = async (req, res) => {
     mailOptions.subject = `Enrollment of ${req.body.title} by ${req.body.studentName}`;
     mailOptions.template = 'enroll';
     mailOptions.context = {
-        title: 'Confirmation!',
-        message: 'You have successfully enrolled in the class.'
+        title: 'Xác nhận!',
+        message: 'Đăng ký khóa học thành công.'
     }
 
     Class.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail })
@@ -301,7 +301,7 @@ exports.enroll = async (req, res) => {
                 });
             }
             else {
-                res.status(200).send({ message: "You have already signed up for a class!", code: 200 });
+                res.status(200).send({ message: "Bạn đã đăng ký khóa học", code: 200 });
             }
         })
 }

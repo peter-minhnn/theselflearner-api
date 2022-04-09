@@ -13,7 +13,7 @@ exports.getAll = (req, res) => {
         res.status(200).send({
             users: sortUsers,
             code: 200,
-            message: 'Get all users successfully!'
+            message: 'Lấy dữ liệu thành công'
         });
     });
 }
@@ -30,7 +30,7 @@ exports.findOne = (req, res) => {
         res.status(200).send({
             user: user,
             code: 200,
-            message: 'Get user successfully!'
+            message: 'Lấy dữ liệu người dùng thành công'
         });
     });
 }
