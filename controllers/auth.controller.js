@@ -353,26 +353,30 @@ exports.updateProfile = (req, res) => {
             return res.status(200).send({ message: "Email không tồn tại", code: 400 });
         }
 
-        var passwordIsValid = bcrypt.compareSync(
-            req.body.oldpassword,
-            user.password
-        );
+        if (req.body.oldpassword && req.body.password) {
+            var passwordIsValid = bcrypt.compareSync(
+                req.body.oldpassword,
+                user.password
+            );
 
-        //Check invalid password
-        if (!passwordIsValid) {
-            return res.status(200).send({
-                accessToken: null,
-                message: "Mật khẩu không hợp lệ",
-                code: 400
-            });
+            //Check invalid password
+            if (!passwordIsValid) {
+                return res.status(200).send({
+                    accessToken: null,
+                    message: "Mật khẩu không hợp lệ",
+                    code: 400
+                });
+            }
         }
 
         let updateUser = {
-            fullname: req.body.fullname,
-            phone: req.body.phone,
-            password: bcrypt.hashSync(req.body.password, 8),
-            rememberPwd: req.body.password,
-            avatar: req.body.avatar,
+            fullname: req.body.fullname ? req.body.fullname : user.fullname,
+            phone: req.body.phone ? req.body.phone : user.phone,
+            password: req.body.password ? bcrypt.hashSync(req.body.password, 8) : user.password,
+            rememberPwd: req.body.password ? req.body.password : user.rememberPwd,
+            avatar: req.body.avatar ? req.body.avatar : user.avatar,
+            updatedUser: req.body.updatedUser,
+            updatedDate: new Date().toISOString()
         }
 
         Evaluate.find({ 'studentEmail': req.body.email }).exec((err, evaluates) => {
@@ -382,12 +386,14 @@ exports.updateProfile = (req, res) => {
             }
             if (evaluates && evaluates.length > 0) {
                 evaluates.forEach(elem => {
-                    Evaluate.updateOne({ 'studentEmail': req.body.email }, 
-                    { 
-                        studentName: req.body.fullname, 
-                        studentPhone: req.body.phone,
-                        studentAvatar: req.body.avatar
-                    }).exec();
+                    Evaluate.updateOne({ 'studentEmail': req.body.email },
+                        {
+                            studentName: req.body.fullname ? req.body.fullname : elem.fullname,
+                            studentPhone: req.body.phone ? req.body.phone : elem.phone,
+                            studentAvatar: req.body.avatar ? req.body.avatar : elem.avatar,
+                            updatedUser: req.body.updatedUser,
+                            updatedDate: new Date().toISOString()
+                        }).exec();
                 })
             }
         });
@@ -399,11 +405,13 @@ exports.updateProfile = (req, res) => {
             }
             if (classes && classes.length > 0) {
                 classes.forEach(elem => {
-                    Evaluate.updateOne({ 'studentEmail': elem.studentEmail }, 
-                    { 
-                        studentName: req.body.fullname, 
-                        studentPhone: req.body.phone,
-                    }).exec();
+                    Evaluate.updateOne({ 'studentEmail': elem.studentEmail },
+                        {
+                            studentName: req.body.fullname ? req.body.fullname : elem.fullname,
+                            studentPhone: req.body.phone ? req.body.phone : elem.phone,
+                            updatedUser: req.body.updatedUser,
+                            updatedDate: new Date().toISOString()
+                        }).exec();
                 })
             }
         });

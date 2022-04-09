@@ -183,7 +183,6 @@ exports.addEvaluate = (req, res) => {
             Evaluate.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail }).exec((err, data) => {
                 if (data) {
                     const update = {
-                        courseId: req.body.courseId,
                         studentEmail: user.email,
                         studentName: user.fullname,
                         studentAvatar: user.avatar,
@@ -204,7 +203,6 @@ exports.addEvaluate = (req, res) => {
                 }
                 else {
                     const evaluate = new Evaluate({
-                        courseId: req.body.courseId,
                         studentEmail: user.email,
                         studentName: user.fullname,
                         studentAvatar: user.avatar,
