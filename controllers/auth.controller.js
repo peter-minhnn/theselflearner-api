@@ -328,7 +328,7 @@ exports.findUser = (req, res) => {
 
         //Create refresh token authorize token
         let refreshToken = await RefreshToken.createToken(user);
-        
+
         User.findOne({
             email: req.body.provider.email
         }).populate("roles", "-__v").exec(async (err, userUpdate) => {
@@ -352,7 +352,7 @@ exports.findUser = (req, res) => {
                 });
             }
         })
-        
+
     });
 }
 
@@ -437,13 +437,36 @@ exports.updateProfile = (req, res) => {
                 res.status(500).send({ message: err });
                 return;
             }
-            res.status(200).send({
-                fullname: updated.fullname,
-                phone: updated.phone,
-                avatar: updated.avatar,
-                code: 201,
-                message: 'Cập nhật thông tin tài khoản thành công'
-            });
+            if (updated.modifiedCount == 1) {
+                User.findOne({
+                    email: req.body.email
+                }).populate("roles", "-__v").exec(async (err, newUser) => {
+                    if (err) {
+                        res.status(500).send({ message: err });
+                        return;
+                    }
+                    if (newUser) {
+                        res.status(200).send({
+                            fullname: newUser.fullname,
+                            phone: newUser.phone,
+                            avatar: newUser.avatar,
+                            code: 201,
+                            message: 'Cập nhật thông tin tài khoản thành công'
+                        });
+                    }
+                    else {
+                        res.status(200).send({
+                            code: 403,
+                            message: 'Không tìm tháy thông tin tài khoản'
+                        });
+                    }
+                })
+            } else {
+                res.status(200).send({
+                    code: 403,
+                    message: 'Cập nhật không thành công'
+                });
+            }
         })
     });
 }
