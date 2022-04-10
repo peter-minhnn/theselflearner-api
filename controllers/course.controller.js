@@ -172,7 +172,10 @@ exports.addEvaluate = (req, res) => {
             let data = {
                 fullname: user.fullname ? user.fullname : req.body.studentName,
                 phone: user.phone ? user.phone : req.body.studentPhone,
+                updatedDate: new Date().toISOString(),
+                updatedUser: req.body.studentEmail
             }
+
             User.updateOne({ 'email': req.body.studentEmail }, data).exec((err, updated) => {
                 if (err) {
                     res.status(500).send({ message: err });
@@ -198,7 +201,11 @@ exports.addEvaluate = (req, res) => {
                             res.status(500).send({ message: err });
                             return;
                         }
-                        res.send({ message: "Cập nhật đánh giá thành công!", code: 201 });
+                        res.send({
+                            fullname: user.fullname,
+                            phone: user.phone,
+                            message: "Đánh giá thành công!", code: 201
+                        });
                     });
                 }
                 else {
@@ -218,7 +225,11 @@ exports.addEvaluate = (req, res) => {
                             res.status(500).send({ message: err });
                             return;
                         }
-                        res.send({ message: "Tạo mới đánh giá thành công", code: 201 });
+                        res.send({
+                            fullname: user.fullname,
+                            phone: user.phone,
+                            message: "Đánh giá thành công!", code: 201
+                        });
                     });
                 }
             })
@@ -236,7 +247,7 @@ exports.enroll = async (req, res) => {
         },
         secure: true,
     });
-    
+
     // point to the template folder
     var handlebarOptions = {
         viewEngine: {
@@ -245,7 +256,7 @@ exports.enroll = async (req, res) => {
         },
         viewPath: path.resolve('./mail-template/'),
     };
-    
+
     var mailOptions = {};
     mailOptions = {
         from: process.env.EMAILNAME, // sender address
@@ -262,44 +273,71 @@ exports.enroll = async (req, res) => {
         message: 'Đăng ký khóa học thành công.'
     }
 
-    Class.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail })
-        .exec((err, result) => {
-            if (err) {
-                console.log('enroll findOne Class: ', err);
-                res.status(500).send({ message: err });
-                return;
+    User.findOne({ 'email': req.body.studentEmail }).exec((err, user) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+        if (user) {
+            let data = {
+                fullname: user.fullname ? user.fullname : req.body.studentName,
+                phone: user.phone ? user.phone : req.body.studentPhone,
+                updatedDate: new Date().toISOString(),
+                updatedUser: req.body.studentEmail
             }
-            if (!result) {
-                //Define new object Class data
-                const enrolClass = new Class({
-                    courseId: req.body.courseId,
-                    studentEmail: req.body.studentEmail,
-                    studentName: req.body.studentName,
-                    studentPhone: req.body.studentPhone,
-                    status: 0,
-                    sDate: req.body.sDate,
-                    eDate: req.body.eDate,
-                    createdDate: new Date().toISOString(),
-                    createdUser: req.body.createdUser
-                });
 
-                enrolClass.save((err, response) => {
+            User.updateOne({ 'email': req.body.studentEmail }, data).exec((err, updated) => {
+                if (err) {
+                    res.status(500).send({ message: err });
+                    return;
+                }
+            });
+
+            Class.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail })
+                .exec((err, result) => {
                     if (err) {
+                        console.log('enroll findOne Class: ', err);
                         res.status(500).send({ message: err });
                         return;
                     }
+                    if (!result) {
+                        //Define new object Class data
+                        const enrolClass = new Class({
+                            courseId: req.body.courseId,
+                            studentEmail: req.body.studentEmail,
+                            studentName: req.body.studentName,
+                            studentPhone: req.body.studentPhone,
+                            status: 0,
+                            sDate: req.body.sDate,
+                            eDate: req.body.eDate,
+                            createdDate: new Date().toISOString(),
+                            createdUser: req.body.createdUser
+                        });
 
-                    transporter.sendMail(mailOptions, function (error, info) {
-                        if (error) {
-                            return console.log(error);
-                        }
-                        console.log('Message sent: ' + info.response);
-                    });
-                    res.status(200).send({ message: "User enroll was created and sent email confirmation successfully!", code: 201 });
-                });
-            }
-            else {
-                res.status(200).send({ message: "Bạn đã đăng ký khóa học", code: 200 });
-            }
-        })
+                        enrolClass.save((err, response) => {
+                            if (err) {
+                                res.status(500).send({ message: err });
+                                return;
+                            }
+
+                            transporter.sendMail(mailOptions, function (error, info) {
+                                if (error) {
+                                    return console.log(error);
+                                }
+                                console.log('Message sent: ' + info.response);
+                            });
+                            res.status(200).send({
+                                fullname: user.fullname,
+                                phone: user.phone,
+                                message: "User enroll was created and sent email confirmation successfully!",
+                                code: 201
+                            });
+                        });
+                    }
+                    else {
+                        res.status(200).send({ message: "Bạn đã đăng ký khóa học", code: 200 });
+                    }
+                })
+        }
+    })
 }

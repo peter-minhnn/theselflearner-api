@@ -301,7 +301,7 @@ exports.sendEmailResetPws = (req, res) => {
 
 exports.findUser = (req, res) => {
     User.findOne({
-        email: req.body.email
+        email: req.body.provider.email
     }).populate("roles", "-__v").exec(async (err, user) => {
         if (err) {
             res.status(500).send({ message: err });
@@ -311,6 +311,15 @@ exports.findUser = (req, res) => {
         if (!user) {
             return res.status(200).send({ message: "Email không tồn tại", code: 400 });
         }
+        if (!user.avatar) {
+            User.updateOne(
+                { '_id': user._id },
+                {
+                    avatar: req.body.provider.imageUrl ?? '',
+                    fullname: req.body.provider.name ?? ''
+                }
+            ).exec();
+        }
 
         //Create token authorize for user
         var token = jwt.sign({ id: user.id }, config.secret, {
@@ -319,24 +328,31 @@ exports.findUser = (req, res) => {
 
         //Create refresh token authorize token
         let refreshToken = await RefreshToken.createToken(user);
-
-        //Create roles for user
-        // var authorities = [];
-        // for (let i = 0; i < user.roles.length; i++) {
-        //     authorities.push("ROLE_" + user.roles[i].name.toUpperCase());
-        // }
-
-        res.status(200).send({
-            email: user.email,
-            fullname: user.fullname,
-            phone: user.phone,
-            avatar: user.avatar,
-            roles: user.roles.name,
-            accessToken: token,
-            refreshToken: refreshToken,
-            code: 200,
-            message: 'Đăng nhập thành công'
-        });
+        
+        User.findOne({
+            email: req.body.provider.email
+        }).populate("roles", "-__v").exec(async (err, userUpdate) => {
+            if (userUpdate) {
+                res.status(200).send({
+                    email: userUpdate.email,
+                    fullname: userUpdate.fullname,
+                    phone: userUpdate.phone,
+                    avatar: userUpdate.avatar,
+                    roles: userUpdate.roles.name,
+                    accessToken: token,
+                    refreshToken: refreshToken,
+                    code: 200,
+                    message: 'Đăng nhập thành công'
+                });
+            }
+            else {
+                res.status(200).send({
+                    code: 204,
+                    message: 'Tài khoản không tồn tại'
+                });
+            }
+        })
+        
     });
 }
 
@@ -422,9 +438,9 @@ exports.updateProfile = (req, res) => {
                 return;
             }
             res.status(200).send({
-                fullname: user.fullname,
-                phone: user.phone,
-                avatar: user.avatar,
+                fullname: updated.fullname,
+                phone: updated.phone,
+                avatar: updated.avatar,
                 code: 201,
                 message: 'Cập nhật thông tin tài khoản thành công'
             });
