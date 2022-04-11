@@ -170,8 +170,8 @@ exports.addEvaluate = (req, res) => {
         }
         if (user) {
             let data = {
-                fullname: user.fullname ? user.fullname : req.body.studentName,
-                phone: user.phone ? user.phone : req.body.studentPhone,
+                fullname: req.body.studentName ? req.body.studentName : user.fullname,
+                phone: req.body.studentPhone ? req.body.studentPhone :user.phone,
                 updatedDate: new Date().toISOString(),
                 updatedUser: req.body.studentEmail
             }
