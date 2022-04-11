@@ -163,9 +163,9 @@ exports.getOneEvaluate = async (req, res) => {
 }
 
 exports.addEvaluate = (req, res) => {
-    User.findOne({ 'email': req.body.studentEmail }).exec((err, user) => {
-        if (err) {
-            res.status(500).send({ message: err });
+    User.findOne({ 'email': req.body.studentEmail }).exec((errFindUser, user) => {
+        if (errFindUser) {
+            res.status(500).send({ message: errFindUser });
             return;
         }
         if (user) {
@@ -183,51 +183,51 @@ exports.addEvaluate = (req, res) => {
                 }
             });
 
-            Evaluate.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail }).exec((err, data) => {
-                if (data) {
+            Evaluate.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail }).exec((errEvaluate, evaluateData) => {
+                if (errEvaluate) {
+                    res.status(500).send({ message: errEvaluate });
+                    return;
+                }
+                if (evaluateData) {
                     const update = {
-                        studentEmail: user.email,
-                        studentName: user.fullname,
-                        studentAvatar: user.avatar,
-                        studentPhone: user.phone,
+                        studentName: data.fullname,
+                        studentPhone: data.phone,
                         score: req.body.score,
                         comment: req.body.comment,
                         updatedDate: new Date().toISOString(),
-                        updatedUser: req.body.updatedUser
+                        updatedUser: req.body.studentEmail
                     }
 
-                    Evaluate.updateOne({ '_id': data._id }, update).exec((err, response) => {
-                        if (err) {
-                            res.status(500).send({ message: err });
+                    Evaluate.updateOne({ '_id': evaluateData._id }, update).exec((errUpdateEvaluate, response) => {
+                        if (errUpdateEvaluate) {
+                            res.status(500).send({ message: errUpdateEvaluate });
                             return;
                         }
                         res.send({
-                            fullname: user.fullname,
-                            phone: user.phone,
+                            fullname: data.fullname,
+                            phone: data.phone,
                             message: "Đánh giá thành công!", code: 201
                         });
                     });
                 }
                 else {
                     const evaluate = new Evaluate({
-                        studentEmail: user.email,
-                        studentName: user.fullname,
-                        studentAvatar: user.avatar,
-                        studentPhone: user.phone,
+                        studentName: data.fullname,
+                        studentPhone: data.phone,
                         score: req.body.score,
                         comment: req.body.comment,
                         createdDate: new Date().toISOString(),
-                        createdUser: req.body.createdUser
+                        createdUser: req.body.studentEmail
                     });
 
-                    evaluate.save((err, response) => {
-                        if (err) {
-                            res.status(500).send({ message: err });
+                    evaluate.save((errSave, response) => {
+                        if (errSave) {
+                            res.status(500).send({ message: errSave });
                             return;
                         }
                         res.send({
-                            fullname: user.fullname,
-                            phone: user.phone,
+                            fullname: data.fullname,
+                            phone: data.phone,
                             message: "Đánh giá thành công!", code: 201
                         });
                     });
@@ -286,21 +286,44 @@ exports.enroll = async (req, res) => {
                 updatedUser: req.body.studentEmail
             }
 
-            User.updateOne({ 'email': req.body.studentEmail }, data).exec((err, updated) => {
-                if (err) {
-                    res.status(500).send({ message: err });
+            User.updateOne({ 'email': req.body.studentEmail }, data).exec((errUser, updated) => {
+                if (errUser) {
+                    res.status(500).send({ message: errUser });
                     return;
+                }
+                if (updated.modifiedCount == 1) {
+                    Evaluate.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail }).exec((errEvaluateFindOne, evaluate) => {
+                        if (errEvaluateFindOne) {
+                            res.status(500).send({ message: errEvaluateFindOne });
+                            return;
+                        }
+                        if (evaluate) {
+                            const update = {
+                                studentName: data.fullname,
+                                studentPhone: data.phone,
+                                updatedDate: new Date().toISOString(),
+                                updatedUser: req.body.studentEmail
+                            }
+        
+                            Evaluate.updateOne({ '_id': evaluate._id }, update).exec((errUpdate, response) => {
+                                if (errUpdate) {
+                                    res.status(500).send({ message: errUpdate });
+                                    return;
+                                }
+                            });
+                        }
+                    })
                 }
             });
 
             Class.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail })
-                .exec((err, result) => {
-                    if (err) {
-                        console.log('enroll findOne Class: ', err);
-                        res.status(500).send({ message: err });
+                .exec((errClass, classResult) => {
+                    if (errClass) {
+                        console.log('enroll findOne Class: ', errClass);
+                        res.status(500).send({ message: errClass });
                         return;
                     }
-                    if (!result) {
+                    if (!classResult) {
                         //Define new object Class data
                         const enrolClass = new Class({
                             courseId: req.body.courseId,
@@ -314,21 +337,21 @@ exports.enroll = async (req, res) => {
                             createdUser: req.body.createdUser
                         });
 
-                        enrolClass.save((err, response) => {
-                            if (err) {
-                                res.status(500).send({ message: err });
+                        enrolClass.save((errSave, response) => {
+                            if (errSave) {
+                                res.status(500).send({ message: errSave });
                                 return;
                             }
 
-                            transporter.sendMail(mailOptions, function (error, info) {
-                                if (error) {
-                                    return console.log(error);
+                            transporter.sendMail(mailOptions, function (errorSendMail, info) {
+                                if (errorSendMail) {
+                                    return console.log(errorSendMail);
                                 }
                                 console.log('Message sent: ' + info.response);
                             });
                             res.status(200).send({
-                                fullname: user.fullname,
-                                phone: user.phone,
+                                fullname: data.fullname,
+                                phone: data.phone,
                                 message: "User enroll was created and sent email confirmation successfully!",
                                 code: 201
                             });

@@ -395,42 +395,38 @@ exports.updateProfile = (req, res) => {
             updatedDate: new Date().toISOString()
         }
 
-        Evaluate.find({ 'studentEmail': req.body.email }).exec((err, evaluates) => {
-            if (err) {
-                res.status(500).send({ message: err });
-                return;
-            }
-            if (evaluates && evaluates.length > 0) {
-                evaluates.forEach(elem => {
-                    Evaluate.updateOne({ 'studentEmail': req.body.email },
-                        {
-                            studentName: req.body.fullname ? req.body.fullname : elem.fullname,
-                            studentPhone: req.body.phone ? req.body.phone : elem.phone,
-                            studentAvatar: req.body.avatar ? req.body.avatar : elem.avatar,
-                            updatedUser: req.body.updatedUser,
-                            updatedDate: new Date().toISOString()
-                        }).exec();
-                })
-            }
-        });
+        Evaluate.updateMany({ 'studentEmail': req.body.email },
+            {
+                studentName: updateUser.fullname,
+                studentPhone: updateUser.phone,
+                studentAvatar: updateUser.avatar,
+                updatedUser: updateUser.updatedUser,
+                updatedDate: new Date().toISOString()
+            }).exec((errorUpdateEva, newEva) => {
+                if (errorUpdateEva) {
+                    res.status(500).send({ message: errorUpdateEva });
+                    return;
+                }
+                if (newEva.modifiedCount == 1) {
+                    console.log('Cập nhật thông tin đánh giá thành công.')
+                }
+            });
 
-        Class.find({ 'studentEmail': req.body.email }).exec((err, classes) => {
-            if (err) {
-                res.status(500).send({ message: err });
-                return;
-            }
-            if (classes && classes.length > 0) {
-                classes.forEach(elem => {
-                    Evaluate.updateOne({ 'studentEmail': elem.studentEmail },
-                        {
-                            studentName: req.body.fullname ? req.body.fullname : elem.fullname,
-                            studentPhone: req.body.phone ? req.body.phone : elem.phone,
-                            updatedUser: req.body.updatedUser,
-                            updatedDate: new Date().toISOString()
-                        }).exec();
-                })
-            }
-        });
+        Class.updateMany({ 'studentEmail': req.body.email },
+            {
+                studentName: updateUser.fullname,
+                studentPhone: updateUser.phone,
+                updatedUser: updateUser.updatedUser,
+                updatedDate: new Date().toISOString()
+            }).exec((errorUpdateEva, newEva) => {
+                if (errorUpdateEva) {
+                    res.status(500).send({ message: errorUpdateEva });
+                    return;
+                }
+                if (newEva.modifiedCount == 1) {
+                    console.log('Cập nhật thông tin lớp học thành công.')
+                }
+            });
 
         User.updateOne({ 'email': req.body.email }, updateUser).exec((err, updated) => {
             if (err) {
