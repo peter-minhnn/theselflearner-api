@@ -171,7 +171,7 @@ exports.addEvaluate = (req, res) => {
         if (user) {
             let data = {
                 fullname: req.body.studentName ? req.body.studentName : user.fullname,
-                phone: req.body.studentPhone ? req.body.studentPhone :user.phone,
+                phone: req.body.studentPhone ? req.body.studentPhone : user.phone,
                 updatedDate: new Date().toISOString(),
                 updatedUser: req.body.studentEmail
             }
@@ -181,58 +181,75 @@ exports.addEvaluate = (req, res) => {
                     res.status(500).send({ message: err });
                     return;
                 }
+                if (updated.modifiedCount == 1) {
+                    User.findOne({ 'email': req.body.studentEmail }).exec((errUserUpdated, userUpdated) => {
+                        if (errUserUpdated) {
+                            res.status(500).send({ message: errUserUpdated });
+                            return;
+                        }
+                        if (userUpdated) {
+                            Evaluate.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail }).exec((errEvaluate, evaluateData) => {
+                                if (errEvaluate) {
+                                    res.status(500).send({ message: errEvaluate });
+                                    return;
+                                }
+                                if (evaluateData) {
+                                    const update = {
+                                        courseId: req.body.courseId,
+                                        email: req.body.studentEmail,
+                                        studentName: userUpdated.fullname,
+                                        studentPhone: userUpdated.phone,
+                                        studentAvatar: userUpdated.avatar,
+                                        score: req.body.score,
+                                        comment: req.body.comment,
+                                        updatedDate: new Date().toISOString(),
+                                        updatedUser: req.body.studentEmail
+                                    }
+
+                                    Evaluate.updateOne({ '_id': evaluateData._id }, update).exec((errUpdateEvaluate, response) => {
+                                        if (errUpdateEvaluate) {
+                                            res.status(500).send({ message: errUpdateEvaluate });
+                                            return;
+                                        }
+                                        res.send({
+                                            fullname: data.fullname,
+                                            phone: data.phone,
+                                            message: "Đánh giá thành công!", code: 201
+                                        });
+                                    });
+                                }
+                                else {
+                                    const evaluate = new Evaluate({
+                                        courseId: req.body.courseId,
+                                        email: req.body.studentEmail,
+                                        studentName: userUpdated.fullname,
+                                        studentPhone: userUpdated.phone,
+                                        studentAvatar: userUpdated.avatar,
+                                        score: req.body.score,
+                                        comment: req.body.comment,
+                                        createdDate: new Date().toISOString(),
+                                        createdUser: req.body.studentEmail
+                                    });
+
+                                    evaluate.save((errSave, response) => {
+                                        if (errSave) {
+                                            res.status(500).send({ message: errSave });
+                                            return;
+                                        }
+                                        res.send({
+                                            fullname: userUpdated.fullname,
+                                            phone: userUpdated.phone,
+                                            message: "Đánh giá thành công!", code: 201
+                                        });
+                                    });
+                                }
+                            })
+                        }
+                    })
+                }
             });
 
-            Evaluate.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail }).exec((errEvaluate, evaluateData) => {
-                if (errEvaluate) {
-                    res.status(500).send({ message: errEvaluate });
-                    return;
-                }
-                if (evaluateData) {
-                    const update = {
-                        studentName: data.fullname,
-                        studentPhone: data.phone,
-                        score: req.body.score,
-                        comment: req.body.comment,
-                        updatedDate: new Date().toISOString(),
-                        updatedUser: req.body.studentEmail
-                    }
 
-                    Evaluate.updateOne({ '_id': evaluateData._id }, update).exec((errUpdateEvaluate, response) => {
-                        if (errUpdateEvaluate) {
-                            res.status(500).send({ message: errUpdateEvaluate });
-                            return;
-                        }
-                        res.send({
-                            fullname: data.fullname,
-                            phone: data.phone,
-                            message: "Đánh giá thành công!", code: 201
-                        });
-                    });
-                }
-                else {
-                    const evaluate = new Evaluate({
-                        studentName: data.fullname,
-                        studentPhone: data.phone,
-                        score: req.body.score,
-                        comment: req.body.comment,
-                        createdDate: new Date().toISOString(),
-                        createdUser: req.body.studentEmail
-                    });
-
-                    evaluate.save((errSave, response) => {
-                        if (errSave) {
-                            res.status(500).send({ message: errSave });
-                            return;
-                        }
-                        res.send({
-                            fullname: data.fullname,
-                            phone: data.phone,
-                            message: "Đánh giá thành công!", code: 201
-                        });
-                    });
-                }
-            })
         }
     })
 }
@@ -292,75 +309,87 @@ exports.enroll = async (req, res) => {
                     return;
                 }
                 if (updated.modifiedCount == 1) {
-                    Evaluate.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail }).exec((errEvaluateFindOne, evaluate) => {
-                        if (errEvaluateFindOne) {
-                            res.status(500).send({ message: errEvaluateFindOne });
+                    User.findOne({ 'email': req.body.studentEmail }).exec((errUserUpdated, userUpdated) => {
+                        if (errUserUpdated) {
+                            res.status(500).send({ message: errUserUpdated });
                             return;
                         }
-                        if (evaluate) {
-                            const update = {
-                                studentName: data.fullname,
-                                studentPhone: data.phone,
-                                updatedDate: new Date().toISOString(),
-                                updatedUser: req.body.studentEmail
+                        //Update user evaluate
+                        Evaluate.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail }).exec((errEvaluateFindOne, evaluate) => {
+                            if (errEvaluateFindOne) {
+                                res.status(500).send({ message: errEvaluateFindOne });
+                                return;
                             }
-        
-                            Evaluate.updateOne({ '_id': evaluate._id }, update).exec((errUpdate, response) => {
-                                if (errUpdate) {
-                                    res.status(500).send({ message: errUpdate });
+                            if (evaluate) {
+                                const update = {
+                                    courseId: req.body.courseId,
+                                    email: req.body.studentEmail,
+                                    studentName: userUpdated.fullname,
+                                    studentPhone: userUpdated.phone,
+                                    studentAvatar: userUpdated.avatar,
+                                    updatedDate: new Date().toISOString(),
+                                    updatedUser: req.body.studentEmail
+                                }
+
+                                Evaluate.updateOne({ '_id': evaluate._id }, update).exec((errUpdate, response) => {
+                                    if (errUpdate) {
+                                        res.status(500).send({ message: errUpdate });
+                                        return;
+                                    }
+                                });
+                            }
+                        })
+
+                        //Create class by courseId
+                        Class.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail })
+                            .exec((errClass, classResult) => {
+                                if (errClass) {
+                                    console.log('enroll findOne Class: ', errClass);
+                                    res.status(500).send({ message: errClass });
                                     return;
                                 }
-                            });
-                        }
+                                if (!classResult) {
+                                    //Define new object Class data
+                                    const enrolClass = new Class({
+                                        courseId: req.body.courseId,
+                                        studentEmail: req.body.studentEmail,
+                                        studentName: req.body.studentName,
+                                        studentPhone: req.body.studentPhone,
+                                        studentAvatar: user.avatar,
+                                        status: 0,
+                                        sDate: req.body.sDate,
+                                        eDate: req.body.eDate,
+                                        createdDate: new Date().toISOString(),
+                                        createdUser: req.body.createdUser
+                                    });
+
+                                    enrolClass.save((errSave, response) => {
+                                        if (errSave) {
+                                            res.status(500).send({ message: errSave });
+                                            return;
+                                        }
+
+                                        transporter.sendMail(mailOptions, function (errorSendMail, info) {
+                                            if (errorSendMail) {
+                                                return console.log(errorSendMail);
+                                            }
+                                            console.log('Message sent: ' + info.response);
+                                        });
+                                        res.status(200).send({
+                                            fullname: data.fullname,
+                                            phone: data.phone,
+                                            message: "User enroll was created and sent email confirmation successfully!",
+                                            code: 201
+                                        });
+                                    });
+                                }
+                                else {
+                                    res.status(200).send({ message: "Bạn đã đăng ký khóa học", code: 200 });
+                                }
+                            })
                     })
                 }
             });
-
-            Class.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail })
-                .exec((errClass, classResult) => {
-                    if (errClass) {
-                        console.log('enroll findOne Class: ', errClass);
-                        res.status(500).send({ message: errClass });
-                        return;
-                    }
-                    if (!classResult) {
-                        //Define new object Class data
-                        const enrolClass = new Class({
-                            courseId: req.body.courseId,
-                            studentEmail: req.body.studentEmail,
-                            studentName: req.body.studentName,
-                            studentPhone: req.body.studentPhone,
-                            status: 0,
-                            sDate: req.body.sDate,
-                            eDate: req.body.eDate,
-                            createdDate: new Date().toISOString(),
-                            createdUser: req.body.createdUser
-                        });
-
-                        enrolClass.save((errSave, response) => {
-                            if (errSave) {
-                                res.status(500).send({ message: errSave });
-                                return;
-                            }
-
-                            transporter.sendMail(mailOptions, function (errorSendMail, info) {
-                                if (errorSendMail) {
-                                    return console.log(errorSendMail);
-                                }
-                                console.log('Message sent: ' + info.response);
-                            });
-                            res.status(200).send({
-                                fullname: data.fullname,
-                                phone: data.phone,
-                                message: "User enroll was created and sent email confirmation successfully!",
-                                code: 201
-                            });
-                        });
-                    }
-                    else {
-                        res.status(200).send({ message: "Bạn đã đăng ký khóa học", code: 200 });
-                    }
-                })
         }
     })
 }
