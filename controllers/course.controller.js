@@ -188,7 +188,8 @@ exports.addEvaluate = (req, res) => {
                             return;
                         }
                         if (userUpdated) {
-                            Evaluate.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail }).exec((errEvaluate, evaluateData) => {
+                            Evaluate.findOne({ 'courseId': req.body.courseId, 'studentEmail': req.body.studentEmail })
+                            .exec((errEvaluate, evaluateData) => {
                                 if (errEvaluate) {
                                     res.status(500).send({ message: errEvaluate });
                                     return;
@@ -196,7 +197,7 @@ exports.addEvaluate = (req, res) => {
                                 if (evaluateData) {
                                     const update = {
                                         courseId: req.body.courseId,
-                                        email: req.body.studentEmail,
+                                        studentEmail: req.body.studentEmail,
                                         studentName: userUpdated.fullname,
                                         studentPhone: userUpdated.phone,
                                         studentAvatar: userUpdated.avatar,
@@ -221,7 +222,7 @@ exports.addEvaluate = (req, res) => {
                                 else {
                                     const evaluate = new Evaluate({
                                         courseId: req.body.courseId,
-                                        email: req.body.studentEmail,
+                                        studentEmail: req.body.studentEmail,
                                         studentName: userUpdated.fullname,
                                         studentPhone: userUpdated.phone,
                                         studentAvatar: userUpdated.avatar,
@@ -323,7 +324,7 @@ exports.enroll = async (req, res) => {
                             if (evaluate) {
                                 const update = {
                                     courseId: req.body.courseId,
-                                    email: req.body.studentEmail,
+                                    studentEmail: req.body.studentEmail,
                                     studentName: userUpdated.fullname,
                                     studentPhone: userUpdated.phone,
                                     studentAvatar: userUpdated.avatar,
