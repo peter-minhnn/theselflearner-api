@@ -394,3 +394,21 @@ exports.enroll = async (req, res) => {
         }
     })
 }
+
+exports.getClassByEmail = (req, res) => {
+    Class.findOne({ "courseId": req.body.courseId, "studentEmail": req.body.email })
+        .exec((err, response) => {
+            if (!response) {
+                res.status(200).send({
+                    code: 204,
+                    message: 'Bạn chưa đăng ký khóa học nên không thể đánh giá',
+                })
+            }
+            else {
+                res.status(200).send({
+                    code: 200,
+                    message: 'Bạn đã đăng ký khóa học',
+                })
+            }
+        })
+}

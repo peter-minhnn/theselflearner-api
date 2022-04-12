@@ -8,7 +8,8 @@ module.exports = function (app) {
     app.delete("/api/course/deleteCourse", [authJwt.verifyToken], controller.deleteCourse)
     app.delete("/api/course/deleteCourseEvaluate", [authJwt.verifyToken], controller.deleteCourseEvaluate)
     app.get("/api/course/getCourses", controller.getCourses); //Get all courses client
-    app.get("/api/course/getOneEvaluate", controller.getOneEvaluate); //Get one evaluate by course id client
-    app.post("/api/course/addEvaluate", [authJwt.verifyToken], controller.addEvaluate); //Add user rating
+    app.get("/api/course/get-one-evaluate", controller.getOneEvaluate); //Get one evaluate by course id client
+    app.post("/api/course/add-evaluate", [authJwt.verifyToken], controller.addEvaluate); //Add user rating
     app.post("/api/course/enroll", [authJwt.verifyToken], controller.enroll); //Add user enrol class
+    app.post("/api/course/get-class-by-email", [authJwt.verifyToken], controller.getClassByEmail); //Add user enrol class
 };
