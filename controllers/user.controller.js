@@ -45,7 +45,8 @@ exports.create = (req, res) => {
         createdDate: new Date().toISOString(),
         creadtedUser: req.body.createdUser,
         updatedDate: "",
-        updatedUser: ""
+        updatedUser: "",
+        status: req.body.status
     });
     user.save((err, user) => {
         if (err) {
@@ -101,7 +102,8 @@ exports.update = (req, res) => {
         rememberPwd: req.body.password,
         updatedDate: new Date().toISOString(),
         updatedUser: req.body.updatedUser,
-        roles: ''
+        roles: '',
+        status: req.body.status
     }
 
     Role.find(

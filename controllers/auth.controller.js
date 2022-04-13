@@ -339,6 +339,7 @@ exports.findUser = (req, res) => {
                     phone: userUpdate.phone,
                     avatar: userUpdate.avatar,
                     roles: userUpdate.roles.name,
+                    status: userUpdate.status,
                     accessToken: token,
                     refreshToken: refreshToken,
                     code: 200,

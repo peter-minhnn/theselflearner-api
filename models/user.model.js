@@ -12,6 +12,7 @@ const Users = mongoose.model(
     updatedDate: String,
     updatedUser: String,
     avatar: String,
+    status: String,
     roles: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Role"
