@@ -334,6 +334,7 @@ exports.findUser = (req, res) => {
         }).populate("roles", "-__v").exec(async (err, userUpdate) => {
             if (userUpdate) {
                 res.status(200).send({
+                    id: userUpdate._id,
                     email: userUpdate.email,
                     fullname: userUpdate.fullname,
                     phone: userUpdate.phone,
