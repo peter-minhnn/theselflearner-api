@@ -7,6 +7,12 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const db = require("./models");
 const Role = db.role;
+var http = require('http').createServer(app);
+var io = require('socket.io')(http, {
+    cors: {
+        origin: '*',
+    }
+});
 
 mongoose.Promise = global.Promise;
 mongoose.connect('mongodb+srv://admin:bdWdCKJ1xWw9E1Zb@minhnn.3k3a3.mongodb.net/theselflearner_db?retryWrites=true&w=majority', { useNewUrlParser: true }).then(
@@ -84,6 +90,93 @@ app.use(function (req, res, next) {
 });
 
 const PORT = process.env.PORT || 4001;
-app.listen(PORT, function () {
+http.listen(PORT, function () {
     console.log('Server is running on Port:', PORT);
+});
+
+var STATIC_CHANNELS = [];
+io.on('connection', (socket) => { // socket object may be used to send specific messages to the new connected client
+    console.log('new client connected');
+    socket.emit('connection', null);
+    socket.on('channel-join', id => {
+        console.log('channel join', id);
+        STATIC_CHANNELS.forEach(c => {
+            if (c.id === id) {
+                if (c.sockets.indexOf(socket.id) == (-1)) {
+                    c.sockets.push(socket.id);
+                    c.participants++;
+                    io.emit('channel', c);
+                }
+            } else {
+                let index = c.sockets.indexOf(socket.id);
+                if (index != (-1)) {
+                    c.sockets.splice(index, 1);
+                    c.participants--;
+                    io.emit('channel', c);
+                }
+            }
+        });
+
+        return id;
+    });
+
+    socket.on('send-message', message => {
+        STATIC_CHANNELS.forEach(c => {
+            if (c.id === message.channel_id) {
+                if (!c.messages) {
+                    c.messages = [message];
+                } else {
+                    c.messages.push(message);
+                }
+                if (message.senderName === 'admin') c.incomingAdminMsg += 1;
+                if (message.senderName !== 'admin') c.incomingUserMsg += 1;
+            }
+        });
+        io.emit('message', message);
+    });
+
+    socket.on('create-user-channel', message => {
+        let obj = {
+            name: message.senderName,
+            participants: 0,
+            id: message.channel_id,
+            sockets: [],
+            incomingUserMsg: 0,
+            incomingAdminMsg: 0,
+        }
+        let index = STATIC_CHANNELS.findIndex(x => x.id === obj.id);
+        if (index === -1) STATIC_CHANNELS.push(obj);
+        io.emit('user-channel', STATIC_CHANNELS);
+    });
+
+    socket.on('badge-notification', badgeNoti => {
+        STATIC_CHANNELS.map(elem => {
+            if (elem.id == badgeNoti.channel_id) {
+                if (badgeNoti.type === 'admin') elem.incomingUserMsg = 0;
+                if (badgeNoti.type === 'user') elem.incomingAdminMsg = 0;
+            }
+        })
+        io.emit('user-badge-notification', STATIC_CHANNELS);
+    });
+
+    socket.on('disconnect', () => {
+        STATIC_CHANNELS.forEach(c => {
+            let index = c.sockets.indexOf(socket.id);
+            if (index != (-1)) {
+                c.sockets.splice(index, 1);
+                c.participants--;
+                io.emit('channel', c);
+            }
+        });
+    });
+
+});
+
+/**
+ * @description This methos retirves the static channels
+ */
+app.get('/getChannels', (req, res) => {
+    res.status(200).send({
+        channels: STATIC_CHANNELS
+    })
 });
