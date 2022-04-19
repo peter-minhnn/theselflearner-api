@@ -159,6 +159,10 @@ io.on('connection', (socket) => { // socket object may be used to send specific 
         io.emit('user-badge-notification', STATIC_CHANNELS);
     });
 
+    socket.on('is-typing-message', message => {
+        io.emit('is-typing', message);
+    });
+
     socket.on('disconnect', () => {
         STATIC_CHANNELS.forEach(c => {
             let index = c.sockets.indexOf(socket.id);
