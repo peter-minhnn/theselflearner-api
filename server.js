@@ -163,13 +163,20 @@ io.on('connection', (socket) => { // socket object may be used to send specific 
         io.emit('is-typing', message);
     });
 
+    socket.on('end-chat', request => {
+        let index = STATIC_CHANNELS.findIndex(c => c.id === request.channel_id);
+        if (index != (-1)) STATIC_CHANNELS.splice(index, 1);
+        io.emit('channel', STATIC_CHANNELS);
+        
+    })
+
     socket.on('disconnect', () => {
         STATIC_CHANNELS.forEach(c => {
             let index = c.sockets.indexOf(socket.id);
             if (index != (-1)) {
                 c.sockets.splice(index, 1);
                 c.participants--;
-                io.emit('channel', c);
+                io.emit('ended-user-chat', STATIC_CHANNELS);
             }
         });
     });
