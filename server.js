@@ -97,7 +97,7 @@ http.listen(PORT, function () {
 var STATIC_CHANNELS = [];
 io.on('connection', (socket) => { // socket object may be used to send specific messages to the new connected client
     console.log('new client connected');
-    socket.emit('connection', null);
+    socket.emit('connection', STATIC_CHANNELS);
     socket.on('channel-join', id => {
         console.log('channel join', id);
         STATIC_CHANNELS.forEach(c => {
@@ -163,12 +163,11 @@ io.on('connection', (socket) => { // socket object may be used to send specific 
         io.emit('is-typing', message);
     });
 
-    socket.on('end-chat', request => {
-        let index = STATIC_CHANNELS.findIndex(c => c.id === request.channel_id);
+    socket.on('ended-chat', request => {
+        let index = STATIC_CHANNELS.findIndex(c => c.id === request.id);
         if (index != (-1)) STATIC_CHANNELS.splice(index, 1);
         io.emit('channel', STATIC_CHANNELS);
-        
-    })
+    });
 
     socket.on('disconnect', () => {
         STATIC_CHANNELS.forEach(c => {
@@ -176,7 +175,7 @@ io.on('connection', (socket) => { // socket object may be used to send specific 
             if (index != (-1)) {
                 c.sockets.splice(index, 1);
                 c.participants--;
-                io.emit('ended-user-chat', STATIC_CHANNELS);
+                io.emit('subscribeDisconnected', c);
             }
         });
     });
