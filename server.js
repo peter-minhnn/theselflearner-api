@@ -6,13 +6,30 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const db = require("./models");
+const { readFileSync } = require('fs');
 const Role = db.role;
-var http = require('http').createServer(app);
+const sslCertificates = [
+    './ssl-certificate/192.168.1.7-key.pem',    //0
+    './ssl-certificate/192.168.1.7.pem',        //1
+    './ssl-certificate/192.168.100.29-key.pem', //2
+    './ssl-certificate/192.168.100.29.pem',     //3
+    './ssl-certificate/10.106.1.36-key.pem',    //4
+    './ssl-certificate/10.106.1.36.pem',        //5
+];
+
+//Home IP ADDRESS
+const httpsOptions = {
+    key: readFileSync(sslCertificates[4]),
+    cert: readFileSync(sslCertificates[5])
+};
+
+var http = require('https').createServer(httpsOptions, app);
 var io = require('socket.io')(http, {
     cors: {
         origin: '*',
     }
 });
+
 
 mongoose.Promise = global.Promise;
 mongoose.connect('mongodb+srv://admin:bdWdCKJ1xWw9E1Zb@minhnn.3k3a3.mongodb.net/theselflearner_db?retryWrites=true&w=majority', { useNewUrlParser: true }).then(
@@ -59,7 +76,14 @@ function initial() {
     });
 }
 
-var allowlist = ['https://localhost:3000', 'https://www.tselflearner.com'];
+var allowlist = [
+    'https://localhost:3000', 
+    'https://www.tselflearner.com', 
+    'https://192.168.1.7:3000', 
+    'https://192.168.100.29:3000', 
+    'https://10.106.1.36:3000'
+];
+
 var corsOptionsDelegate = function (req, callback) {
     var corsOptions;
     if (allowlist.indexOf(req.header('Origin')) !== -1) {
@@ -70,7 +94,7 @@ var corsOptionsDelegate = function (req, callback) {
     callback(null, corsOptions) // callback expects two parameters: error and options
 }
 
-app.use(cors());
+app.use(cors(corsOptionsDelegate));
 // parse requests of content-type - application/json
 app.use(bodyParser.json());
 // parse requests of content-type - application/x-www-form-urlencoded
@@ -82,6 +106,7 @@ require("./routes/user.routes")(app);
 require("./routes/course.routes")(app);
 require("./routes/menu.routes")(app);
 require("./routes/s3.routes")(app);
+require("./routes/chat.routes")(app);
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
@@ -89,9 +114,14 @@ app.use(function (req, res, next) {
     next();
 });
 
+app.set('trust proxy', (ip) => {
+    if (['localhost', '192.168.1.7', 'tselflearner.com', '192.168.100.29', '10.106.1.36'].includes(ip)) return true // trusted IPs
+    else return false
+})
+
 const PORT = process.env.PORT || 4001;
-http.listen(PORT, function () {
-    console.log('Server is running on Port:', PORT);
+http.listen(PORT, process.env.HOST_NAME, function () {
+    console.log(`Server is running on https://${process.env.HOST_NAME}:${PORT}`);
 });
 
 var STATIC_CHANNELS = [];
@@ -163,21 +193,30 @@ io.on('connection', (socket) => { // socket object may be used to send specific 
         io.emit('is-typing', message);
     });
 
-    socket.on('ended-chat', request => {
-        let index = STATIC_CHANNELS.findIndex(c => c.id === request.id);
+    socket.on('ended-chat', id => {
+        let index = STATIC_CHANNELS.findIndex(c => c.id == id);
+        let channelClone = STATIC_CHANNELS.filter(c => c.id == id);
         if (index != (-1)) STATIC_CHANNELS.splice(index, 1);
-        io.emit('channel', STATIC_CHANNELS);
+        io.emit('ended-user-chat', channelClone);
     });
 
     socket.on('disconnect', () => {
+        let channelIds = [];
         STATIC_CHANNELS.forEach(c => {
             let index = c.sockets.indexOf(socket.id);
             if (index != (-1)) {
+                channelIds.push(c.id);
                 c.sockets.splice(index, 1);
                 c.participants--;
-                io.emit('subscribeDisconnected', c);
             }
         });
+
+        if (channelIds.length > 0) {
+            channelIds.forEach(id => {
+                let indexChannel = STATIC_CHANNELS.findIndex(c => c.id == id);
+                if (indexChannel != (-1)) STATIC_CHANNELS.splice(findIndex, 1);
+            });
+        }
     });
 });
 
