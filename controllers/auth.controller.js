@@ -126,6 +126,7 @@ exports.signin = (req, res) => {
                 avatar: user.avatar,
                 accessToken: token,
                 page: 'user',
+                status: user.status,
                 refreshToken: refreshToken,
                 code: 201,
                 message: 'Đăng nhập thành công'
@@ -211,6 +212,7 @@ exports.signinAdmin = (req, res) => {
                 fullname: user.fullname,
                 phone: user.phone,
                 roles: user.roles.name,
+                status: user.status,
                 accessToken: token,
                 refreshToken: refreshToken,
                 page: 'admin',
