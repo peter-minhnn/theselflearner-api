@@ -31,11 +31,11 @@ exports.sendEmailOnChatBot = (req, res) => {
     // use a template file with nodemailer
     transporter.use('compile', hbs(handlebarOptions))
 
-    mailOptions.subject = `[TIỀN TỚI] ${req.body.firstname + " " + req.body.lastname} vừa liên hệ với vợ yêu trên ChatBot`;
+    mailOptions.subject = `[TIỀN TỚI] ${req.body.firstname} vừa liên hệ với vợ yêu trên ChatBot`;
     mailOptions.template = 'chatbot';
     mailOptions.context = {
         email: req.body.email,
-        name: req.body.firstname + " " + req.body.lastname,
+        name: req.body.firstname,
         phone: req.body.phone
     };
 
