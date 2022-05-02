@@ -19,11 +19,11 @@ const sslCertificates = [
 
 //Home IP ADDRESS
 const httpsOptions = {
-    key: readFileSync(sslCertificates[4]),
-    cert: readFileSync(sslCertificates[5])
+    key: readFileSync(sslCertificates[0]),
+    cert: readFileSync(sslCertificates[1])
 };
 
-var http = require('https').createServer(httpsOptions, app);
+var http = require('https').createServer(app);
 var io = require('socket.io')(http, {
     cors: {
         origin: '*',
