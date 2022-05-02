@@ -6,22 +6,22 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const db = require("./models");
-const { readFileSync } = require('fs');
+// const { readFileSync } = require('fs');
 const Role = db.role;
-const sslCertificates = [
-    './ssl-certificate/192.168.1.7-key.pem',    //0
-    './ssl-certificate/192.168.1.7.pem',        //1
-    './ssl-certificate/192.168.100.29-key.pem', //2
-    './ssl-certificate/192.168.100.29.pem',     //3
-    './ssl-certificate/10.106.1.36-key.pem',    //4
-    './ssl-certificate/10.106.1.36.pem',        //5
-];
+// const sslCertificates = [
+//     './ssl-certificate/192.168.1.7-key.pem',    //0
+//     './ssl-certificate/192.168.1.7.pem',        //1
+//     './ssl-certificate/192.168.100.29-key.pem', //2
+//     './ssl-certificate/192.168.100.29.pem',     //3
+//     './ssl-certificate/10.106.1.36-key.pem',    //4
+//     './ssl-certificate/10.106.1.36.pem',        //5
+// ];
 
 //Home IP ADDRESS
-const httpsOptions = {
-    key: readFileSync(sslCertificates[0]),
-    cert: readFileSync(sslCertificates[1])
-};
+// const httpsOptions = {
+//     key: readFileSync(sslCertificates[0]),
+//     cert: readFileSync(sslCertificates[1])
+// };
 
 var http = require('https').createServer(app);
 var io = require('socket.io')(http, {
