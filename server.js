@@ -23,7 +23,7 @@ const Role = db.role;
 //     cert: readFileSync(sslCertificates[1])
 // };
 
-var http = require('https').createServer(app);
+var http = require('http').createServer(app);
 var io = require('socket.io')(http, {
     cors: {
         origin: '*',
@@ -121,7 +121,7 @@ app.set('trust proxy', (ip) => {
 
 const PORT = process.env.PORT || 4001;
 http.listen(PORT, process.env.HOST_NAME, function () {
-    console.log(`Server is running on https://${process.env.HOST_NAME}:${PORT}`);
+    console.log(`Server is running on http://${process.env.HOST_NAME}:${PORT}`);
 });
 
 var STATIC_CHANNELS = [];
