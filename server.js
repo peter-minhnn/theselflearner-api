@@ -120,7 +120,7 @@ app.set('trust proxy', (ip) => {
 })
 
 const PORT = process.env.PORT || 4001;
-http.listen(PORT, process.env.HOST_NAME, function () {
+http.listen(PORT, function () {
     console.log(`Server is running on http://${process.env.HOST_NAME}:${PORT}`);
 });
 
