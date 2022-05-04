@@ -29,7 +29,8 @@ exports.signup = (req, res) => {
         rememberPwd: req.body.password,
         avatar: req.body.avatar,
         createdDate: new Date().toISOString(),
-        createdUser: ""
+        createdUser: "",
+        status: '1'
     });
     user.save((err, user) => {
         if (err) {
