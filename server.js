@@ -78,10 +78,7 @@ function initial() {
 
 var allowlist = [
     'https://localhost:3000', 
-    'https://www.tselflearner.com', 
-    'https://192.168.1.7:3000', 
-    'https://192.168.100.29:3000', 
-    'https://10.106.1.36:3000'
+    'https://www.tselflearner.com'
 ];
 
 var corsOptionsDelegate = function (req, callback) {
@@ -114,10 +111,10 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.set('trust proxy', (ip) => {
-    if (['localhost', '192.168.1.7', 'tselflearner.com', '192.168.100.29', '10.106.1.36'].includes(ip)) return true // trusted IPs
-    else return false
-})
+// app.set('trust proxy', (ip) => {
+//     if (['localhost', '192.168.1.7', 'tselflearner.com', '192.168.100.29', '10.106.1.36'].includes(ip)) return true // trusted IPs
+//     else return false
+// })
 
 const PORT = process.env.PORT || 4001;
 http.listen(PORT, function () {

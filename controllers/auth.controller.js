@@ -279,14 +279,11 @@ exports.sendEmailResetPws = (req, res) => {
     transporter.use('compile', hbs(handlebarOptions))
 
     if (req.body.type === 'provider') {
-        mailOptions.subject = 'Chào mừng bạn đến với The Self-learner';
-        mailOptions.template = 'registered';
+        mailOptions.subject = 'Khôi phục mật khẩu';
+        mailOptions.template = 'reset-pwd';
         mailOptions.context = {
-            provider: '',
-            password: req.body.password,
-            homeUrl: req.body.homeUrl
+            resetUrl: `https://localhost:3000/forgotpassword?tsltoken=${req.body.tsltoken}`,
         };
-        if (req.body.provider) mailOptions.context.provider = `Tài khoản của bạn đã được tạo mới thông qua đăng nhập với ${req.body.provider}`;
     }
 
     // trigger the sending of the E-mail
@@ -297,7 +294,7 @@ exports.sendEmailResetPws = (req, res) => {
         console.log('Message sent: ' + info.response);
         res.status(200).send({
             code: 201,
-            message: 'Gửi email thành công'
+            message: 'Gửi email làm mới mật khẩu thành công'
         })
     });
 }
