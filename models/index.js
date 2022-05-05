@@ -10,6 +10,7 @@ db.class = require("./class.model");
 db.menu = require("./menus.model");
 db.refreshToken = require("./refreshToken.model");
 db.aws = require("./aws.model");
+db.resetPwd = require("./resetPwd.model");
 db.ROLES = ["user", "admin", "moderator"];
 
 module.exports = db;

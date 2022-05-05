@@ -6,6 +6,7 @@ const Evaluate = db.evaluate;
 const Class = db.class;
 const Role = db.role;
 const RefreshToken = db.refreshToken;
+const ResetPwd = db.resetPwd;
 const hbs = require('nodemailer-express-handlebars');
 const nodemailer = require('nodemailer');
 const path = require('path');
@@ -249,7 +250,7 @@ exports.deleteRefreshToken = (req, res) => {
     });
 }
 
-exports.sendEmailResetPws = (req, res) => {
+exports.sendEmailRegistered = (req, res) => {
     // initialize nodemailer
     const transporter = nodemailer.createTransport({
         port: 465,
@@ -279,11 +280,14 @@ exports.sendEmailResetPws = (req, res) => {
     transporter.use('compile', hbs(handlebarOptions))
 
     if (req.body.type === 'provider') {
-        mailOptions.subject = 'Khôi phục mật khẩu';
-        mailOptions.template = 'reset-pwd';
+        mailOptions.subject = 'Chào mừng bạn đến với The Self-learner';
+        mailOptions.template = 'registered';
         mailOptions.context = {
-            resetUrl: `https://localhost:3000/forgotpassword?tsltoken=${req.body.tsltoken}`,
+            provider: '',
+            password: req.body.password,
+            homeUrl: req.body.homeUrl
         };
+        if (req.body.provider) mailOptions.context.provider = `Tài khoản của bạn đã được tạo mới thông qua đăng nhập với ${req.body.provider}`;
     }
 
     // trigger the sending of the E-mail
@@ -294,7 +298,7 @@ exports.sendEmailResetPws = (req, res) => {
         console.log('Message sent: ' + info.response);
         res.status(200).send({
             code: 201,
-            message: 'Gửi email làm mới mật khẩu thành công'
+            message: 'Gửi email thành công'
         })
     });
 }
@@ -467,4 +471,163 @@ exports.updateProfile = (req, res) => {
             }
         })
     });
+}
+
+exports.sendEmailResetPwd = (req, res) => {
+    User.findOne({ 'email': req.body.email }).exec((errUser, user) => {
+        if (errUser) {
+            res.status(500).send({ message: errUser });
+            return;
+        }
+        if (user) {
+            const resetPwd = new ResetPwd({
+                email: req.body.email,
+                tsltoken: req.body.tsltoken,
+                expiredDate: req.body.expiredDate,
+                expiredTime: req.body.expiredTime,
+                createdDate: new Date().toISOString(),
+                createdUser: req.body.email,
+                status: '1'
+            });
+
+            resetPwd.save((err, response) => {
+                if (err) {
+                    res.status(500).send({ message: err });
+                    return;
+                }
+                if (response) {
+                    /*
+                     * Send email confirm and reset password
+                     */
+
+                    // initialize nodemailer
+                    const transporter = nodemailer.createTransport({
+                        port: 465,
+                        host: "smtp.gmail.com",
+                        auth: {
+                            user: process.env.EMAILNAME,
+                            pass: process.env.SMTP_PWD,
+                        },
+                        secure: true,
+                    });
+
+                    var mailOptions = {};
+                    mailOptions = {
+                        from: process.env.EMAILNAME, // sender address
+                        to: req.body.email
+                    };
+                    // point to the template folder
+                    const handlebarOptions = {
+                        viewEngine: {
+                            partialsDir: path.resolve('./mail-template/'),
+                            defaultLayout: false,
+                        },
+                        viewPath: path.resolve('./mail-template/'),
+                    };
+
+                    // use a template file with nodemailer
+                    transporter.use('compile', hbs(handlebarOptions))
+
+                    mailOptions.subject = 'Khôi phục mật khẩu';
+                    mailOptions.template = 'reset-pwd';
+                    mailOptions.context = {
+                        resetUrl: `https://localhost:3000/forgotpassword?tsltoken=${req.body.tsltoken}&email=${req.body.email}`,
+                    };
+
+                    // trigger the sending of the E-mail
+                    transporter.sendMail(mailOptions, function (error, info) {
+                        if (error) {
+                            return console.log(error);
+                        }
+                        console.log('Message sent: ' + info.response);
+                        res.status(200).send({
+                            code: 200,
+                            message: 'Gửi email đặt lại mật khẩu thành công'
+                        })
+                    });
+                }
+            })
+        }
+        else {
+            res.status(200).send({
+                code: 204,
+                message: 'Email không tồn tại'
+            })
+        }
+    })
+}
+
+exports.checkTokenResetPwd = (req, res) => {
+    ResetPwd.findOne({ 'tsltoken': req.body.tsltoken }).exec((err, response) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+        if (response && response.status == '1') {
+            let now = new Date().getTime();
+            if (now > (response.expiredDate + 36000)) {
+                ResetPwd.updateOne({ '_id': response._id }, { status: '0' }).exec((errUpdate, updateRes) => {
+                    if (errUpdate) {
+                        res.status(500).send({ message: errUpdate });
+                        return;
+                    }
+                    res.status(200).send({
+                        code: 200,
+                        message: 'Mã không còn hiệu lực'
+                    })
+                })
+            }
+            else {
+                res.status(200).send({
+                    code: 200,
+                    message: 'Mã có hiệu lực'
+                })
+            }
+        }
+        else {
+            res.status(200).send({
+                code: 200,
+                message: 'Mã xác thực không tồn tại'
+            })
+        }
+    })
+}
+
+exports.updatePwd = (req, res) => {
+    User.findOne({ 'email': req.body.email }).exec((err, user) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+        if (user) {
+            User.updateOne({ 'email': req.body.email }, { password: bcrypt.hashSync(req.body.password, 8), rememberPwd: req.body.password })
+                .exec((errUpdateUser, responseUpdate) => {
+                    if (errUpdateUser) {
+                        res.status(500).send({ message: errUpdateUser });
+                        return;
+                    }
+                    if (responseUpdate.modifiedCount > 0) {
+                        ResetPwd.deleteOne({ 'tsltoken': req.body.tsltoken })
+                            .exec((resetErr, responseReset) => {
+                                if (resetErr) {
+                                    res.status(500).send({ message: resetErr });
+                                    return;
+                                }
+                                if (responseReset.deletedCount > 0) {
+                                    res.status(200).send({
+                                        code: 201,
+                                        message: 'Đổi mật khẩu thành công'
+                                    })
+                                }
+                            });
+                    }
+                    else {
+                        res.status(200).send({
+                            code: 400,
+                            message: 'Đổi mật khẩu thất bại'
+                        })
+                    }
+                })
+        }
+    })
 }
