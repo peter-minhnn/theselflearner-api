@@ -40,4 +40,6 @@ module.exports = function (app) {
         ],
         controller.delete
     );// Delete user by email
+
+    app.get('/api/user/activate', [authJwt.verifyToken], controller.isActivate) //Check user activate or deactivate
 };

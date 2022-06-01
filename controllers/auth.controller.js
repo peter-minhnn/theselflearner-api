@@ -357,8 +357,7 @@ exports.findUser = (req, res) => {
                     message: 'Tài khoản không tồn tại'
                 });
             }
-        })
-
+        });
     });
 }
 

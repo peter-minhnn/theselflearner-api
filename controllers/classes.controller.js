@@ -31,3 +31,19 @@ exports.getAll = async (req, res) => {
         message: 'Lấy toàn bộ lớp học thành công'
     });
 }
+
+exports.update = async (req, res) => {
+    const data = {
+        status: req.body.status,
+        updatedDate: new Date().toISOString(),
+        updatedUser: req.body.updatedUser
+    };
+
+    Class.updateOne({ "_id": req.body._id }, data).exec((err, course) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+        res.status(200).send({ message: "Cập nhật thành công", code: 201, data: course });
+    });
+}

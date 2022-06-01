@@ -142,3 +142,20 @@ exports.delete = (req, res) => {
         });
     });
 }
+
+exports.isActivate = (req, res) => {
+    User.findOne({
+        'email': req.query.email
+    }).exec((err, user) => {
+        if (err) {
+            res.status(500).send({ message: err });
+            return;
+        }
+        
+        res.status(200).send({
+            isActivate: user && user.status == '1' ? true : false,
+            code: 200,
+            message: user && user.status != '1' ? 'Tài khoản đã vô hiệu hóa' : ''
+        });
+    });
+}
